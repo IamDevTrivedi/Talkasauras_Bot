@@ -1,0 +1,8 @@
+# add node modules
+node_modules
+
+# add build files
+dist
+
+# add .env
+.env
