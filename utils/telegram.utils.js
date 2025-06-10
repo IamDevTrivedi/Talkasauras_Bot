@@ -388,134 +388,144 @@ export async function initBot(bot) {
     }
   });
 
+  function isAdminUpdateCommand(ctx) {
+    return (
+      ctx.message.reply_to_message &&
+      ctx.message.reply_to_message.text.includes(
+        "UPDATES: Please reply to this message"
+      ) &&
+      ctx.from.username === config.ADMIN_USERNAME
+    );
+  }
+
+  function isFeedbackReply(ctx) {
+    return (
+      ctx.message.reply_to_message &&
+      ctx.message.reply_to_message.text.includes(
+        "We greatly appreciate your feedback on Talkasauras"
+      )
+    );
+  }
+
+  async function handleAdminUpdate(ctx) {
+    try {
+      const updateMessage = ctx.message.text;
+      const users = await Chat.find({});
+
+      if (!users.length) {
+        await ctx.reply("No users found in the database to send updates to.");
+        return;
+      }
+
+      await ctx.reply(
+        `Sending updates to ${users.length} users. This may take some time...`
+      );
+
+      const formattedMessage = `🔔 IMPORTANT UPDATE FROM TALKASAURAS TEAM:\n\n${updateMessage}\n\n- Dev Trivedi, Talkasauras Team`;
+      let successCount = 0;
+
+      for (const user of users) {
+        try {
+          await bot.telegram.sendMessage(user.telegramId, formattedMessage);
+          successCount++;
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        } catch (err) {
+          logger.error({
+            message: `Failed to send update to user ${user.telegramId}`,
+            error: err,
+          });
+        }
+      }
+
+      await ctx.reply(
+        `Update broadcast complete! Message successfully sent to ${successCount} of ${users.length} users.`
+      );
+    } catch (updateError) {
+      logger.error({
+        message: "Error sending mass update",
+        error: updateError.message,
+      });
+      await ctx.reply(
+        "An error occurred while attempting to broadcast your update. Please try again later."
+      );
+    }
+  }
+
+  async function handleFeedback(ctx) {
+    try {
+      const newFeedback = new Feedback({
+        telegramId: ctx.from.id,
+        feedback: ctx.message.text,
+      });
+
+      await newFeedback.save();
+      await ctx.reply(
+        "We sincerely appreciate your valuable feedback. Your input plays a key role in our continuous efforts to enhance Talkasauras."
+      );
+    } catch (err) {
+      logger.error({
+        message: "Error saving feedback",
+        error: err,
+      });
+      await ctx.reply(
+        "Thank you for your feedback. While we encountered a technical issue processing your submission, we value your input and will address this matter promptly."
+      );
+    }
+  }
+
+  async function handleDefaultResponse(ctx) {
+    const payload = {
+      telegramId: ctx.from.id,
+      firstName: ctx.from.first_name,
+      userName: ctx.from.username,
+      message: ctx.message.text,
+    };
+
+    let response;
+    try {
+      response = await geminiResponse(payload);
+    } catch (responseError) {
+      logger.error({
+        message: "Error getting Gemini response",
+        error: responseError.message,
+      });
+      response =
+        "We apologize for the inconvenience. Our system is currently experiencing technical difficulties. Please try your inquiry again shortly.";
+    }
+
+    if (!response) {
+      response =
+        "We apologize for the inconvenience. Our system is currently experiencing technical difficulties. Please try your inquiry again shortly.";
+    }
+
+    await ctx.reply(response, {
+      reply_to_message_id: ctx.message.message_id,
+    });
+  }
+
   bot.on("text", async (ctx) => {
     try {
       await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
 
-      if (
-        ctx.message.reply_to_message &&
-        ctx.message.reply_to_message.text.includes(
-          "UPDATES: Please reply to this message"
-        ) &&
-        ctx.from.username === config.ADMIN_USERNAME
-      ) {
-        try {
-          const updateMessage = ctx.message.text;
-
-          const users = await Chat.find({});
-
-          if (!users || users.length === 0) {
-            await ctx.reply(
-              "No users found in the database to send updates to."
-            );
-            return;
-          }
-
-          await ctx.reply(
-            `Sending updates to ${users.length} users. This may take some time...`
-          );
-
-          const formattedMessage = `🔔 IMPORTANT UPDATE FROM TALKASAURAS TEAM:\n\n${updateMessage}\n\n- Dev Trivedi, Talkasauras Team`;
-
-          let successCount = 0;
-
-          for (const user of users) {
-            try {
-              await bot.telegram.sendMessage(user.telegramId, formattedMessage);
-              successCount++;
-
-              await new Promise((resolve) => setTimeout(resolve, 100));
-            } catch (sendError) {
-              logger.error({
-                message: `Failed to send update to user ${user.telegramId}`,
-                error: sendError.message,
-              });
-            }
-          }
-
-          await ctx.reply(
-            `Update broadcast complete! Message successfully sent to ${successCount} of ${users.length} users.`
-          );
-        } catch (updateError) {
-          logger.error({
-            message: "Error sending mass update",
-            error: updateError.message,
-          });
-          await ctx.reply(
-            "An error occurred while attempting to broadcast your update. Please try again later."
-          );
-        }
+      if (isAdminUpdateCommand(ctx)) {
+        await handleAdminUpdate(ctx);
         return;
       }
 
-      if (
-        ctx.message.reply_to_message &&
-        ctx.message.reply_to_message.text.includes(
-          "We greatly appreciate your feedback on Talkasauras"
-        )
-      ) {
-        try {
-          const newFeedback = new Feedback({
-            telegramId: ctx.from.id,
-            feedback: ctx.message.text,
-          });
-
-          await newFeedback.save();
-          await ctx.reply(
-            "We sincerely appreciate your valuable feedback. Your input plays a key role in our continuous efforts to enhance Talkasauras."
-          );
-        } catch (feedbackError) {
-          logger.error({
-            message: "Error saving feedback",
-            error: feedbackError.message,
-          });
-          await ctx.reply(
-            "Thank you for your feedback. While we encountered a technical issue processing your submission, we value your input and will address this matter promptly."
-          );
-        }
+      if (isFeedbackReply(ctx)) {
+        await handleFeedback(ctx);
         return;
       }
 
-      const payload = {
-        telegramId: ctx.from.id,
-        firstName: ctx.from.first_name,
-        userName: ctx.from.username,
-        message: ctx.message.text,
-      };
-
-      let response;
-      try {
-        response = await geminiResponse(payload);
-      } catch (responseError) {
-        logger.error({
-          message: "Error getting Gemini response",
-          error: responseError.message,
-        });
-        response =
-          "We apologize for the inconvenience. Our system is currently experiencing technical difficulties. Please try your inquiry again shortly.";
-      }
-
-      if (!response) {
-        response =
-          "We apologize for the inconvenience. Our system is currently experiencing technical difficulties. Please try your inquiry again shortly.";
-      }
-
-      await ctx.reply(response, {
-        reply_to_message_id: ctx.message.message_id,
-      });
+      await handleDefaultResponse(ctx);
     } catch (error) {
-      logger.error({ message: "Error in text handler", error: error.message });
-
-      try {
-        await ctx.reply(
-          "We apologize for the inconvenience. Our system is currently experiencing technical difficulties. Please attempt your inquiry again shortly."
-        );
-      } catch (replyError) {
-        logger.error({
-          message: "Critical error: Failed to send error message",
-          error: replyError.message,
-        });
-      }
+      await ctx.reply(
+        "We apologize for the inconvenience. Our system is currently experiencing technical difficulties. Please attempt your inquiry again shortly."
+      );
+      logger.error({
+        message: "Error processing text message",
+        error: error.message,
+      });
     }
   });
 
