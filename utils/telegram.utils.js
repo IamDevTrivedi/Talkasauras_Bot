@@ -5,18 +5,16 @@ import logger from "./logger.utils.js";
 import config from "../config.js";
 
 const createUser = async (ctx) => {
-  const user = await user.findOne({
-    telegramId: ctx.from.id,
-  });
+  let chat = await Chat.findOne({ telegramId: ctx.from.id });
 
-  if (!user) {
-    const newUser = new Chat({
+  if (!chat) {
+    chat = new Chat({
       firstName: ctx.from.first_name,
       userName: ctx.from.username,
       telegramId: ctx.from.id,
     });
 
-    await newUser.save();
+    await chat.save();
   }
 };
 
