@@ -4,6 +4,22 @@ import Chat from "../models/chat.model.js";
 import logger from "./logger.utils.js";
 import config from "../config.js";
 
+const createUser = async (ctx) => {
+  const user = await user.findOne({
+    telegramId: ctx.from.id,
+  });
+
+  if (!user) {
+    const newUser = new Chat({
+      firstName: ctx.from.first_name,
+      userName: ctx.from.username,
+      telegramId: ctx.from.id,
+    });
+
+    await newUser.save();
+  }
+};
+
 export async function initBot(bot) {
   try {
     await bot.telegram.setMyCommands([
@@ -38,6 +54,7 @@ export async function initBot(bot) {
 
   bot.command("about", async (ctx) => {
     try {
+      await createUser(ctx);
       const aboutText =
         "Welcome to Talkasauras — a smart and intuitive AI assistant powered by Google's Gemini AI. " +
         "This platform is designed to offer intelligent support, personalized guidance, and engaging conversational experiences tailored to each user.\n\n" +
@@ -85,6 +102,7 @@ export async function initBot(bot) {
   unsupportedTypes.forEach((type) => {
     bot.on(type, async (ctx) => {
       try {
+        await createUser(ctx);
         await ctx.reply(
           `Unfortunately, messages in the ${
             type[0].toUpperCase() + type.slice(1)
@@ -104,6 +122,7 @@ export async function initBot(bot) {
 
   bot.start(async (ctx) => {
     try {
+      await createUser(ctx);
       const name = ctx.from.first_name || "Valued User";
       const welcomeText =
         `Greetings, ${name}! Welcome to Talkasauras — a powerful AI assistant powered by Google's Gemini AI. ` +
@@ -125,6 +144,7 @@ export async function initBot(bot) {
 
   bot.command("help", async (ctx) => {
     try {
+      await createUser(ctx);
       const helpText =
         "Below is a list of available commands to assist you in navigating the system:\n\n" +
         [
@@ -155,6 +175,7 @@ export async function initBot(bot) {
 
   bot.command("contact", async (ctx) => {
     try {
+      await createUser(ctx);
       const contactText =
         "Thank you for your interest in connecting with the development team.\n" +
         "You can reach out to Dev Trivedi through the following platforms:";
@@ -187,6 +208,7 @@ export async function initBot(bot) {
 
   bot.command("feedback", async (ctx) => {
     try {
+      await createUser(ctx);
       await ctx.reply(
         "We greatly appreciate your feedback on Talkasauras. Kindly share your thoughts to help us continuously improve the quality of our services.",
         {
