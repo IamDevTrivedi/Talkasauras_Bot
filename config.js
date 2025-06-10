@@ -13,7 +13,8 @@ const config = {
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
     WEBHOOK_URL: process.env.WEBHOOK_URL,
     LOGGING_ENABLED: process.env.LOGGING_ENABLED === 'true',
-    ADMIN_USERNAME: process.env.ADMIN_USERNAME
+    MASTER_ADMIN: process.env.MASTER_ADMIN, 
+    ADMIN_ARRAY: process.env.ADMIN_ARRAY ? process.env.ADMIN_ARRAY.split(',').map((admin) => admin.trim()) : process.env.MASTER_ADMIN? [process.env.MASTER_ADMIN.trim()] : [],
 };
 
 

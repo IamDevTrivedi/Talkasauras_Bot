@@ -360,7 +360,14 @@ export async function initBot(bot) {
 
   bot.command("sendUpdateToAllUsers", async (ctx) => {
     try {
-      if (ctx.from.username !== config.ADMIN_USERNAME) {
+      if (
+        config.ADMIN_ARRAY.find((admin) => admin === ctx.from.username) ===
+        undefined
+      ) {
+        logger.warn({
+          message: `Unauthorized access attempt by user ${ctx.from.username} to send updates.`,
+          userId: ctx.from.id,
+        });
         await ctx.reply(
           "You don't have permission to use this command. This feature is restricted to administrators only."
         );
@@ -392,9 +399,9 @@ export async function initBot(bot) {
     return (
       ctx.message.reply_to_message &&
       ctx.message.reply_to_message.text.includes(
-        "UPDATES: Please reply to this message"
+        "UPDATES: Please reply to this message with the update you want to send to all users."
       ) &&
-      ctx.from.username === config.ADMIN_USERNAME
+      config.ADMIN_ARRAY.includes(ctx.from.username)
     );
   }
 
