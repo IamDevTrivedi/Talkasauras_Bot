@@ -5,7 +5,7 @@ import Chat from "../models/chat.model.js";
 import RemoveMarkdown from "remove-markdown";
 import { createUser } from "./telegram.utils.js";
 
-export async function geminiResponse(payload) {
+async function geminiResponse(payload) {
   const { telegramId, firstName, userName, message } = payload;
   await createUser(payload.ctx);
 
@@ -80,3 +80,17 @@ export async function geminiResponse(payload) {
 
   return RemoveMarkdown(response.text);
 }
+
+async function CorrectRemainderMessage(message) {
+  const ai = new GoogleGenAI({ apiKey: config.GOOGLE_GEMINI_API_KEY });
+  const chat = ai.chats.create({
+    model: "gemini-2.0-flash",
+    systemInstruction: `You are a grammar correction assistant for a reminder bot. When given a user message like "remind me to call John tomorrow", correct any grammar mistakes and return a friendly confirmation sentence in this **exact format**: "Okay, I will remind you to <corrected message>." Do not add extra context or any explanation. Only return one corrected sentence in that format.`,
+    history: [],
+  });
+
+  const response = await chat.sendMessage({ message });
+  return response.text;
+}
+
+export { geminiResponse, CorrectRemainderMessage };

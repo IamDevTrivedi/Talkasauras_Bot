@@ -3,6 +3,7 @@ import Feedback from "../models/feedback.model.js";
 import Chat from "../models/chat.model.js";
 import logger from "./logger.utils.js";
 import config from "../config.js";
+import { handleRemainder } from "./chrono.utils.js";
 
 const createUser = async (ctx) => {
   let chat = await Chat.findOne({ telegramId: ctx.from.id });
@@ -49,6 +50,10 @@ async function initBot(bot) {
         },
         { command: "contact", description: "Get in touch with the developer" },
         { command: "about", description: "View information about this bot" },
+        {
+          command: "remindme",
+          description: "Set a reminder for a specific time",
+        },
       ]);
     } catch (error) {
       logger.error({
@@ -356,6 +361,22 @@ async function initBot(bot) {
     }
   });
 
+  bot.command("remindme", async (ctx) => {
+    try {
+      await createUser(ctx);
+
+      await ctx.reply("Please type the reminder message 👇", {
+        reply_markup: {
+          force_reply: true,
+          selective: true,
+        },
+      });
+    } catch (error) {
+      console.error("Error in /remindme command:", error);
+      await ctx.reply("❌ Something went wrong while setting your reminder.");
+    }
+  });
+
   bot.command("sendUpdateToAllUsers", async (ctx) => {
     try {
       await createUser(ctx);
@@ -409,6 +430,15 @@ async function initBot(bot) {
       ctx.message.reply_to_message &&
       ctx.message.reply_to_message.text.includes(
         "We greatly appreciate your feedback on Talkasauras"
+      )
+    );
+  }
+
+  function isRemainderReply(ctx) {
+    return (
+      ctx.message.reply_to_message &&
+      ctx.message.reply_to_message.text.includes(
+        "Please type the reminder message 👇"
       )
     );
   }
@@ -512,8 +542,6 @@ async function initBot(bot) {
 
   bot.on("text", async (ctx) => {
     try {
-      await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
-
       if (isAdminUpdateCommand(ctx)) {
         await handleAdminUpdate(ctx);
         return;
@@ -524,6 +552,12 @@ async function initBot(bot) {
         return;
       }
 
+      if (isRemainderReply(ctx)) {
+        await handleRemainder(ctx);
+        return;
+      }
+
+      await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
       await handleDefaultResponse(ctx);
     } catch (error) {
       await ctx.reply(
