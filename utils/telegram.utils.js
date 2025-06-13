@@ -13,41 +13,49 @@ const createUser = async (ctx) => {
       userName: ctx.from.username,
       telegramId: ctx.from.id,
     });
-
-    await chat.save();
   }
+
+  // NOTE : redis can be implemented here to store the user data temporarily
+  console.log("------------------");
+
+  await chat.save();
 };
 
-export async function initBot(bot) {
-  try {
-    await bot.telegram.setMyCommands([
-      {
-        command: "start",
-        description: "Initialize and start interacting with the bot",
-      },
-      { command: "help", description: "Display the help documentation" },
-      {
-        command: "temporary_start",
-        description: "Initiate a temporary chat session",
-      },
-      {
-        command: "temporary_end",
-        description: "Terminate the temporary chat session",
-      },
-      {
-        command: "current_mode",
-        description: "Display the current operational mode of the bot",
-      },
-      { command: "clear", description: "Erase your chat history" },
-      { command: "feedback", description: "Submit feedback to the developer" },
-      { command: "contact", description: "Get in touch with the developer" },
-      { command: "about", description: "View information about this bot" },
-    ]);
-  } catch (error) {
-    logger.error({
-      message: "An error occurred while configuring bot commands.",
-      error: error.message,
-    });
+async function initBot(bot) {
+  {
+    try {
+      await bot.telegram.setMyCommands([
+        {
+          command: "start",
+          description: "Initialize and start interacting with the bot",
+        },
+        { command: "help", description: "Display the help documentation" },
+        {
+          command: "temporary_start",
+          description: "Initiate a temporary chat session",
+        },
+        {
+          command: "temporary_end",
+          description: "Terminate the temporary chat session",
+        },
+        {
+          command: "current_mode",
+          description: "Display the current operational mode of the bot",
+        },
+        { command: "clear", description: "Erase your chat history" },
+        {
+          command: "feedback",
+          description: "Submit feedback to the developer",
+        },
+        { command: "contact", description: "Get in touch with the developer" },
+        { command: "about", description: "View information about this bot" },
+      ]);
+    } catch (error) {
+      logger.error({
+        message: "An error occurred while configuring bot commands.",
+        error: error.message,
+      });
+    }
   }
 
   bot.command("about", async (ctx) => {
@@ -230,15 +238,8 @@ export async function initBot(bot) {
 
   bot.command("temporary_start", async (ctx) => {
     try {
+      await createUser(ctx);
       let user = await Chat.findOne({ telegramId: ctx.from.id });
-
-      if (!user) {
-        user = new Chat({
-          firstName: ctx.from.first_name,
-          userName: ctx.from.username,
-          telegramId: ctx.from.id,
-        });
-      }
 
       user.isTemporary = true;
       user.temporaryChatHistory = [];
@@ -265,15 +266,8 @@ export async function initBot(bot) {
 
   bot.command("temporary_end", async (ctx) => {
     try {
+      await createUser(ctx);
       let user = await Chat.findOne({ telegramId: ctx.from.id });
-
-      if (!user) {
-        user = new Chat({
-          firstName: ctx.from.first_name,
-          userName: ctx.from.username,
-          telegramId: ctx.from.id,
-        });
-      }
 
       user.isTemporary = false;
       user.temporaryChatHistory = [];
@@ -299,17 +293,8 @@ export async function initBot(bot) {
 
   bot.command("current_mode", async (ctx) => {
     try {
+      await createUser(ctx);
       let user = await Chat.findOne({ telegramId: ctx.from.id });
-
-      if (!user) {
-        user = new Chat({
-          firstName: ctx.from.first_name,
-          userName: ctx.from.username,
-          telegramId: ctx.from.id,
-        });
-
-        await user.save();
-      }
 
       let reply;
 
@@ -346,15 +331,8 @@ export async function initBot(bot) {
 
   bot.command("clear", async (ctx) => {
     try {
+      await createUser(ctx);
       let user = await Chat.findOne({ telegramId: ctx.from.id });
-
-      if (!user) {
-        user = new Chat({
-          firstName: ctx.from.first_name,
-          userName: ctx.from.username,
-          telegramId: ctx.from.id,
-        });
-      }
 
       user.chatHistory = [];
       user.isTemporary = false;
@@ -380,6 +358,7 @@ export async function initBot(bot) {
 
   bot.command("sendUpdateToAllUsers", async (ctx) => {
     try {
+      await createUser(ctx);
       if (
         config.ADMIN_ARRAY.find((admin) => admin === ctx.from.username) ===
         undefined
@@ -506,6 +485,7 @@ export async function initBot(bot) {
       firstName: ctx.from.first_name,
       userName: ctx.from.username,
       message: ctx.message.text,
+      ctx: ctx,
     };
 
     let response;
@@ -573,3 +553,5 @@ export async function initBot(bot) {
     }
   });
 }
+
+export { initBot, createUser };
