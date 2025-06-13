@@ -25,14 +25,10 @@ async function handleReminder(ctx) {
                 .trim()
                 .replace(/^./, (s) => s.toLowerCase());
 
-        console.log("=".repeat(50));
-        console.log(roundedTime);
-        console.log(replyMessage);
-        console.log(reminderMessage);
-        console.log("=".repeat(50));
-
         await ctx.reply(
-            `🕒 Reminder Time: ${roundedTime}\n\n💬 Message to send now:\n${replyMessage}\n\n📩 Message to send as reminder:\n${reminderMessage}`
+            `⏰ Reminder Set!\n\n` +
+                `🕒 Scheduled Time: ${roundedTime}\n\n` +
+                `📩 Reminder Message:\n${reminderMessage}`
         );
 
         const newReminder = await new Reminder({

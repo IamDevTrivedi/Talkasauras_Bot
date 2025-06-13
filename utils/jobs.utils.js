@@ -11,7 +11,7 @@ async function initJobs(bot) {
             const reminders = await Reminder.find({
                 sent: false,
                 reminderTime: {
-                    $lte: nextMinute,
+                    $lte: now,
                     $gte: previousMinute,
                 },
             });
