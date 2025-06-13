@@ -1,26 +1,28 @@
 import mongoose from "mongoose";
 
-const feedbackSchema = new mongoose.Schema(
+const reminderSchema = new mongoose.Schema(
     {
         telegramId: {
             type: String,
             required: true,
         },
-
-        feedback: {
+        reminderMessage: {
             type: String,
             required: true,
         },
-
-        checked: {
+        reminderTime: {
+            type: Date,
+            required: true,
+        },
+        sent: {
             type: Boolean,
-            require: true,
+            required: true,
             default: false,
         },
     },
     { timestamps: true }
 );
 
-const Feedback = mongoose.model("Feedback", feedbackSchema);
+const Reminder = mongoose.model("Reminder", reminderSchema);
 
-export default Feedback;
+export default Reminder;

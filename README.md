@@ -61,50 +61,50 @@ A sophisticated AI-powered Telegram bot built with Google's Gemini AI, designed 
 
 1. **Clone the repository**
 
-   ```bash
-   git clone https://github.com/IamDevTrivedi/Talkasauras-Bot.git
-   cd Talkasauras-Bot
-   ```
+    ```bash
+    git clone https://github.com/IamDevTrivedi/Talkasauras-Bot.git
+    cd Talkasauras-Bot
+    ```
 
 2. **Install dependencies**
 
-   ```bash
-   npm install
-   # or using pnpm
-   pnpm install
-   ```
+    ```bash
+    npm install
+    # or using pnpm
+    pnpm install
+    ```
 
 3. **Environment Configuration**
 
-   Create a `.env` file in the root directory:
+    Create a `.env` file in the root directory:
 
-   ```env
-   # Bot Configuration
-   TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
-   GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
+    ```env
+    # Bot Configuration
+    TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+    GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
 
-   # Database
-   MONGODB_URL=mongodb://localhost:27017/talkasauras
+    # Database
+    MONGODB_URL=mongodb://localhost:27017/talkasauras
 
-   # Server Configuration
-   ENVIRONMENT=development
-   PORT_DEV=3000
-   PORT_PROD=8080
+    # Server Configuration
+    ENVIRONMENT=development
+    PORT_DEV=3000
+    PORT_PROD=8080
 
-   # Admin Configuration
-   ADMIN_USERNAME=your_telegram_username
+    # Admin Configuration
+    ADMIN_USERNAME=your_telegram_username
 
-   # Optional
-   WEBHOOK_URL=your_webhook_url_for_production
-   LOGGING_ENABLED=true
-   ```
+    # Optional
+    WEBHOOK_URL=your_webhook_url_for_production
+    LOGGING_ENABLED=true
+    ```
 
 4. **Start the application**
-   ```bash
-   npm start
-   # or
-   node index.js
-   ```
+    ```bash
+    npm start
+    # or
+    node index.js
+    ```
 
 ## 📁 Project Structure
 
@@ -132,8 +132,8 @@ Talkasauras-Bot/
 
 ### Environment Variables
 
-| Variable                | Description               | 
-| ----------------------- | ------------------------- | 
+| Variable                | Description               |
+| ----------------------- | ------------------------- |
 | `TELEGRAM_BOT_TOKEN`    | Bot token from @BotFather |
 | `GOOGLE_GEMINI_API_KEY` | Google Gemini API key     |
 | `MONGODB_URL`           | MongoDB connection string |

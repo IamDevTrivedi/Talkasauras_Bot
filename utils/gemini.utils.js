@@ -6,91 +6,89 @@ import RemoveMarkdown from "remove-markdown";
 import { createUser } from "./telegram.utils.js";
 
 async function geminiResponse(payload) {
-  const { telegramId, firstName, userName, message } = payload;
-  await createUser(payload.ctx);
+    const { telegramId, firstName, userName, message } = payload;
+    await createUser(payload.ctx);
 
-  let User = await Chat.findOne({ telegramId });
+    let User = await Chat.findOne({ telegramId });
 
-  const now = Date.now();
-  const sinceLast = now - User.lastMessageAt;
+    const now = Date.now();
+    const sinceLast = now - User.lastMessageAt;
 
-  const isTemporary = User.isTemporary && sinceLast < 1000 * 60 * 5;
+    const isTemporary = User.isTemporary && sinceLast < 1000 * 60 * 5;
 
-  const historySource = isTemporary
-    ? User.temporaryChatHistory
-    : User.chatHistory;
+    const historySource = isTemporary ? User.temporaryChatHistory : User.chatHistory;
 
-  if (!isTemporary) {
-    User.temporaryChatHistory = [];
-    User.isTemporary = false;
-  }
+    if (!isTemporary) {
+        User.temporaryChatHistory = [];
+        User.isTemporary = false;
+    }
 
-  const history = historySource.map((msg) => ({
-    role: msg.role,
-    parts: [
-      {
-        text: msg.content,
-      },
-    ],
-  }));
+    const history = historySource.map((msg) => ({
+        role: msg.role,
+        parts: [
+            {
+                text: msg.content,
+            },
+        ],
+    }));
 
-  const ai = new GoogleGenAI({ apiKey: config.GOOGLE_GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: config.GOOGLE_GEMINI_API_KEY });
 
-  const chat = ai.chats.create({
-    model: "gemini-2.0-flash",
-    history,
-    config: {
-      systemInstruction: [
-        "You are Talkasauras, a friendly and knowledgeable AI assistant powered by Google's Gemini AI technology.",
-        "This project was developed by Dev Trivedi. Users can explore more about his work and connect with him using the following links: LinkedIn - https://in.linkedin.com/in/contact-devtrivedi, GitHub - https://github.com/IamDevTrivedi., Portfolio - https://www.devtrivedi.me.",
-        "Adopt a warm, conversational tone. Be personable, engaging, and easy to talk to.",
-        "Avoid using Markdown or any special formatting—respond in plain text only.",
-        `Whenever it feels natural, address the user by their first name (“${firstName}”) to build rapport and a personalized experience.`,
-        "Provide responses that are accurate, detailed, and informative. Always go the extra mile to explain concepts clearly.",
-        "Encourage further interaction by ending each message with a relevant follow-up question based on the user's last input.",
-      ].join(" "),
-    },
-  });
+    const chat = ai.chats.create({
+        model: "gemini-2.0-flash",
+        history,
+        config: {
+            systemInstruction: [
+                "You are Talkasauras, a friendly and knowledgeable AI assistant powered by Google's Gemini AI technology.",
+                "This project was developed by Dev Trivedi. Users can explore more about his work and connect with him using the following links: LinkedIn - https://in.linkedin.com/in/contact-devtrivedi, GitHub - https://github.com/IamDevTrivedi., Portfolio - https://www.devtrivedi.me.",
+                "Adopt a warm, conversational tone. Be personable, engaging, and easy to talk to.",
+                "Avoid using Markdown or any special formatting—respond in plain text only.",
+                `Whenever it feels natural, address the user by their first name (“${firstName}”) to build rapport and a personalized experience.`,
+                "Provide responses that are accurate, detailed, and informative. Always go the extra mile to explain concepts clearly.",
+                "Encourage further interaction by ending each message with a relevant follow-up question based on the user's last input.",
+            ].join(" "),
+        },
+    });
 
-  const response = await chat.sendMessage({ message });
+    const response = await chat.sendMessage({ message });
 
-  const userPart = {
-    role: "user",
-    content: message,
-  };
+    const userPart = {
+        role: "user",
+        content: message,
+    };
 
-  const modelPart = {
-    role: "model",
-    content: response.text,
-  };
+    const modelPart = {
+        role: "model",
+        content: response.text,
+    };
 
-  if (isTemporary) {
-    User.temporaryChatHistory.push(userPart);
-    User.temporaryChatHistory.push(modelPart);
-  } else {
-    User.chatHistory.push(userPart);
-    User.chatHistory.push(modelPart);
-  }
+    if (isTemporary) {
+        User.temporaryChatHistory.push(userPart);
+        User.temporaryChatHistory.push(modelPart);
+    } else {
+        User.chatHistory.push(userPart);
+        User.chatHistory.push(modelPart);
+    }
 
-  try {
-    await User.save();
-  } catch (error) {
-    logger.error({ message: "Failed to save history", error });
-  }
+    try {
+        await User.save();
+    } catch (error) {
+        logger.error({ message: "Failed to save history", error });
+    }
 
-  return RemoveMarkdown(response.text);
+    return RemoveMarkdown(response.text);
 }
 
-async function CorrectRemainderMessage(message) {
-  const ai = new GoogleGenAI({ apiKey: config.GOOGLE_GEMINI_API_KEY });
-  const chat = ai.chats.create({
-    model: "gemini-2.0-flash",
-    systemInstruction: `You are a grammar correction assistant for a reminder bot. When given a user message like "remind me to call John tomorrow", correct any grammar mistakes and return a friendly confirmation sentence in this **exact format**: "Okay, I will remind you to <corrected message>." Do not add extra context or any explanation. Only return one corrected sentence in that format.`,
-    history: [],
-  });
+async function CorrectReminderMessage(message) {
+    const ai = new GoogleGenAI({ apiKey: config.GOOGLE_GEMINI_API_KEY });
+    const chat = ai.chats.create({
+        model: "gemini-2.0-flash",
+        systemInstruction: `You are a grammar correction assistant for a reminder bot. When given a user message like "remind me to call John tomorrow", correct any grammar mistakes and return a friendly confirmation sentence in this **exact format**: "Okay, I will remind you to <corrected message>." Do not add extra context or any explanation. Only return one corrected sentence in that format.`,
+        history: [],
+    });
 
-  const response = await chat.sendMessage({ message });
-  return response.text;
+    const response = await chat.sendMessage({ message });
+    return response.text;
 }
 
-export { geminiResponse, CorrectRemainderMessage };
+export { geminiResponse, CorrectReminderMessage };

@@ -1,21 +1,23 @@
 import mongoose from "mongoose";
 
-const messageSchema = new mongoose.Schema({
-    role: {
-        type: String,
-        enum: ['user', 'model'],
-        required: true
+const messageSchema = new mongoose.Schema(
+    {
+        role: {
+            type: String,
+            enum: ["user", "model"],
+            required: true,
+        },
+        content: {
+            type: String,
+            required: true,
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now,
+        },
     },
-    content: {
-        type: String,
-        required: true
-    },
-    timestamp: {
-        type: Date,
-        default: Date.now
-    }
-}, { _id: false });
-
+    { _id: false }
+);
 
 const chatSchema = new mongoose.Schema({
     firstName: {
@@ -30,36 +32,35 @@ const chatSchema = new mongoose.Schema({
         type: Number,
         required: true,
         index: true,
-        unique: true
+        unique: true,
     },
     chatHistory: {
         type: [messageSchema],
-        default: []
+        default: [],
     },
 
     lastMessageAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
     },
 
     isTemporary: {
         type: Boolean,
-        default: false
+        default: false,
     },
 
     temporaryChatHistory: {
         type: [messageSchema],
-        default: []
+        default: [],
     },
 });
 
-chatSchema.pre('save', function (next) {
-    if (this.isModified('chatHistory') || this.isModified('temporaryChatHistory')) {
+chatSchema.pre("save", function (next) {
+    if (this.isModified("chatHistory") || this.isModified("temporaryChatHistory")) {
         this.lastMessageAt = Date.now();
     }
     next();
 });
 
-
-const Chat = mongoose.model('Chat', chatSchema);
+const Chat = mongoose.model("Chat", chatSchema);
 export default Chat;
