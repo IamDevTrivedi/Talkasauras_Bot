@@ -2,8 +2,6 @@ import cron from "node-cron";
 import Reminder from "../models/reminder.model.js";
 
 async function initJobs(bot) {
-    let count = 1;
-
     cron.schedule("* * * * *", async () => {
         const now = new Date();
         const previousMinute = new Date(now.getTime() - 60 * 1000);
@@ -18,8 +16,6 @@ async function initJobs(bot) {
                 },
             });
 
-            console.log(reminders.length);
-
             for (const reminder of reminders) {
                 await bot.telegram.sendMessage(reminder.telegramId, reminder.reminderMessage);
                 reminder.sent = true;
@@ -28,8 +24,6 @@ async function initJobs(bot) {
         } catch (err) {
             console.error("Reminder job failed:", err);
         }
-
-        console.log(count++);
     });
 }
 

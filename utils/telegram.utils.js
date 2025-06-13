@@ -166,6 +166,7 @@ async function initBot(bot) {
                     "📢 /about — Learn more about this platform and its developer.",
                     "📨 /contact — Reach out directly to the development team.",
                     "📝 /feedback — Share your feedback or suggestions to help improve the system.",
+                    "⏰ /remindme — Send only /remindme, then reply to the newly sent message — Done, you're set.",
                     "If you require assistance at any time, please enter /help to revisit this guide. The system is here to support you.",
                 ].join("\n\n");
 
