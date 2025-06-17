@@ -1,56 +1,91 @@
-import { GoogleGenAI } from "@google/genai";
 import config from "../config.js";
 import logger from "./logger.utils.js";
 import Chat from "../models/chat.model.js";
 import RemoveMarkdown from "remove-markdown";
 import { createUser } from "./telegram.utils.js";
+import { generateText } from "ai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 async function geminiTextResponse(payload) {
-    const { telegramId, firstName, userName, message } = payload;
-    await createUser(payload.ctx);
+    const { telegramId, firstName, userName, message, ctx } = payload;
 
-    let User = await Chat.findOne({ telegramId });
+    try {
+        await createUser(ctx);
+    } catch (err) {
+        logger.error({
+            message: "Failed to create or update user in Telegram context",
+            error: err,
+            telegramId,
+        });
+        return "Sorry, something went wrong while setting up your profile.";
+    }
+
+    let User;
+    try {
+        User = await Chat.findOne({ telegramId });
+        if (!User) {
+            throw new Error("User not found in database");
+        }
+    } catch (err) {
+        logger.error({
+            message: "Failed to fetch user from database",
+            error: err,
+            telegramId,
+        });
+        return "Sorry, we couldn't find your chat history. Please try again later.";
+    }
 
     const now = Date.now();
     const sinceLast = now - User.lastMessageAt;
-
     const isTemporary = User.isTemporary && sinceLast < 1000 * 60 * 5;
 
     const historySource = isTemporary ? User.temporaryChatHistory : User.chatHistory;
 
-    if (!isTemporary) {
-        User.temporaryChatHistory = [];
-        User.isTemporary = false;
-    }
+    const google = createGoogleGenerativeAI({
+        apiKey: config.GOOGLE_GEMINI_API_KEY,
+    });
 
-    const history = historySource.map((msg) => ({
-        role: msg.role,
-        parts: [
-            {
-                text: msg.content,
-            },
-        ],
+    let messages = historySource.map((msg) => ({
+        role: msg.role === "model" ? "assistant" : "user",
+        content: [{ type: "text", text: msg.content }],
     }));
 
-    const ai = new GoogleGenAI({ apiKey: config.GOOGLE_GEMINI_API_KEY });
+    messages.push({
+        role: "user",
+        content: [{ type: "text", text: message }],
+    });
 
-    const chat = ai.chats.create({
-        model: "gemini-2.0-flash",
-        history,
-        config: {
-            systemInstruction: [
+    let result;
+    try {
+        result = await generateText({
+            model: google("gemini-2.0-flash", {
+                useSearchGrounding: true,
+            }),
+            providerOptions: {
+                google: { responseModalities: ["TEXT"] },
+            },
+            system: [
                 "You are Talkasauras, a friendly and knowledgeable AI assistant powered by Google's Gemini AI technology.",
-                "This project was developed by Dev Trivedi. Users can explore more about his work and connect with him using the following links: LinkedIn - https://in.linkedin.com/in/contact-devtrivedi, GitHub - https://github.com/IamDevTrivedi., Portfolio - https://www.devtrivedi.me.",
+                "This project was developed by Dev Trivedi. Users can explore more about his work and connect with him using the following links: LinkedIn - https://in.linkedin.com/in/contact-devtrivedi, GitHub - https://github.com/IamDevTrivedi., Portfolio - https://www.dev-trivedi.me.",
                 "Adopt a warm, conversational tone. Be personable, engaging, and easy to talk to.",
                 "Avoid using Markdown or any special formatting—respond in plain text only.",
                 `Whenever it feels natural, address the user by their first name (“${firstName}”) to build rapport and a personalized experience.`,
                 "Provide responses that are accurate, detailed, and informative. Always go the extra mile to explain concepts clearly.",
                 "Encourage further interaction by ending each message with a relevant follow-up question based on the user's last input.",
             ].join(" "),
-        },
-    });
+            messages: messages,
+        });
+    } catch (err) {
+        logger.error({
+            message: "Failed to generate response using Gemini AI",
+            error: err,
+            telegramId,
+            messageContent: message,
+        });
+        return "I'm having trouble responding right now. Please try again shortly.";
+    }
 
-    const response = await chat.sendMessage({ message });
+    const response = result.text;
 
     const userPart = {
         role: "user",
@@ -59,36 +94,26 @@ async function geminiTextResponse(payload) {
 
     const modelPart = {
         role: "model",
-        content: response.text,
+        content: response,
     };
 
     if (isTemporary) {
-        User.temporaryChatHistory.push(userPart);
-        User.temporaryChatHistory.push(modelPart);
+        User.temporaryChatHistory.push(userPart, modelPart);
     } else {
-        User.chatHistory.push(userPart);
-        User.chatHistory.push(modelPart);
+        User.chatHistory.push(userPart, modelPart);
     }
 
     try {
         await User.save();
     } catch (error) {
-        logger.error({ message: "Failed to save history", error });
+        logger.error({
+            message: "Failed to save updated chat history",
+            error,
+            telegramId,
+        });
     }
 
-    return RemoveMarkdown(response.text);
+    return RemoveMarkdown(response);
 }
 
-async function CorrectReminderMessage(message) {
-    const ai = new GoogleGenAI({ apiKey: config.GOOGLE_GEMINI_API_KEY });
-    const chat = ai.chats.create({
-        model: "gemini-2.0-flash",
-        systemInstruction: `You are a grammar correction assistant for a reminder bot. When given a user message like "remind me to call John tomorrow", correct any grammar mistakes and return a friendly confirmation sentence in this **exact format**: "Okay, I will remind you to <corrected message>." Do not add extra context or any explanation. Only return one corrected sentence in that format.`,
-        history: [],
-    });
-
-    const response = await chat.sendMessage({ message });
-    return response.text;
-}
-
-export { geminiTextResponse, CorrectReminderMessage };
+export { geminiTextResponse };

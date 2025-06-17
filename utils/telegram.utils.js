@@ -1,4 +1,4 @@
-import { geminiTextResponse } from "./gemini2.utils.js";
+import { geminiTextResponse } from "./gemini.utils.js";
 import Feedback from "../models/feedback.model.js";
 import Chat from "../models/chat.model.js";
 import logger from "./logger.utils.js";
