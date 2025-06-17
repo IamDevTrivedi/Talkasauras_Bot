@@ -1,4 +1,4 @@
-import { geminiTextResponse } from "./gemini.utils.js";
+import { geminiImageResponse, geminiTextResponse } from "./gemini.utils.js";
 import Feedback from "../models/feedback.model.js";
 import Chat from "../models/chat.model.js";
 import logger from "./logger.utils.js";
@@ -28,7 +28,14 @@ async function initBot(bot) {
                     command: "start",
                     description: "Initialize and start interacting with the bot",
                 },
-                { command: "help", description: "Display the help documentation" },
+                {
+                    command: "help",
+                    description: "Display the help documentation",
+                },
+                {
+                    command: "remindme",
+                    description: "Set a reminder for a specific time",
+                },
                 {
                     command: "temporary_start",
                     description: "Initiate a temporary chat session",
@@ -38,22 +45,32 @@ async function initBot(bot) {
                     description: "Terminate the temporary chat session",
                 },
                 {
-                    command: "remindme",
-                    description: "Set a reminder for a specific time",
-                },
-                {
                     command: "current_mode",
                     description: "Display the current operational mode of the bot",
                 },
-                { command: "clear", description: "Erase your chat history" },
+                {
+                    command: "imagine",
+                    description: "Generate an image based on a text prompt",
+                },
+                {
+                    command: "clear",
+                    description: "Erase your chat history",
+                },
                 {
                     command: "feedback",
                     description: "Submit feedback to the developer",
                 },
-                { command: "contact", description: "Get in touch with the developer" },
-                { command: "about", description: "View information about this bot" },
+                {
+                    command: "contact",
+                    description: "Get in touch with the developer",
+                },
+                {
+                    command: "about",
+                    description: "View information about this bot",
+                },
             ]);
         } catch (error) {
+            console.log(error);
             logger.error({
                 message: "An error occurred while configuring bot commands.",
                 error: error.message,
@@ -363,7 +380,7 @@ async function initBot(bot) {
         try {
             await createUser(ctx);
 
-            await ctx.reply("Please type the reminder message 👇", {
+            await ctx.reply("REMINDER: Please type the reminder message 👇", {
                 reply_markup: {
                     force_reply: true,
                     selective: true,
@@ -409,6 +426,28 @@ async function initBot(bot) {
         }
     });
 
+    bot.command("imagine", async (ctx) => {
+        try {
+            await createUser(ctx);
+
+            await ctx.reply("IMAGINE: Please reply to this message with your image prompt", {
+                reply_markup: {
+                    force_reply: true,
+                    selective: true,
+                },
+            });
+        } catch (error) {
+            logger.error({
+                error,
+                message: "error in /imagine command",
+            });
+
+            await ctx.reply(
+                "An error occurred while attempting to generate image. Please try again later."
+            );
+        }
+    });
+
     function isAdminUpdateCommand(ctx) {
         return (
             ctx.message.reply_to_message &&
@@ -431,8 +470,44 @@ async function initBot(bot) {
     function isReminderReply(ctx) {
         return (
             ctx.message.reply_to_message &&
-            ctx.message.reply_to_message.text.includes("Please type the reminder message 👇")
+            ctx.message.reply_to_message.text.includes(
+                "REMINDER: Please type the reminder message 👇"
+            )
         );
+    }
+
+    function isImagineReply(ctx) {
+        return (
+            ctx.message.reply_to_message &&
+            ctx.message.reply_to_message.text.includes(
+                "IMAGINE: Please reply to this message with your image prompt"
+            )
+        );
+    }
+
+    async function handleImagine(ctx) {
+        try {
+            await ctx.reply("Please wait while we generate your image...");
+
+            const payload = {
+                telegramId: ctx.from.id,
+                firstName: ctx.from.first_name,
+                userName: ctx.from.username,
+                message: ctx.message.text,
+                ctx: ctx,
+            };
+
+            await geminiImageResponse(payload);
+        } catch (error) {
+            logger.error({
+                message: "error in handleImagine block",
+                error: error,
+            });
+
+            await ctx.reply(
+                "An error occurred while attempting to generate the image. Please try again later."
+            );
+        }
     }
 
     async function handleAdminUpdate(ctx) {
@@ -544,6 +619,11 @@ async function initBot(bot) {
 
             if (isReminderReply(ctx)) {
                 await handleReminder(ctx);
+                return;
+            }
+
+            if (isImagineReply(ctx)) {
+                await handleImagine(ctx);
                 return;
             }
 
