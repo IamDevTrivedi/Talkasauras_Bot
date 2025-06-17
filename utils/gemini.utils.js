@@ -5,7 +5,7 @@ import Chat from "../models/chat.model.js";
 import RemoveMarkdown from "remove-markdown";
 import { createUser } from "./telegram.utils.js";
 
-async function geminiResponse(payload) {
+async function geminiTextResponse(payload) {
     const { telegramId, firstName, userName, message } = payload;
     await createUser(payload.ctx);
 
@@ -91,4 +91,4 @@ async function CorrectReminderMessage(message) {
     return response.text;
 }
 
-export { geminiResponse, CorrectReminderMessage };
+export { geminiTextResponse, CorrectReminderMessage };

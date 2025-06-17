@@ -1,4 +1,4 @@
-import { geminiResponse } from "./gemini.utils.js";
+import { geminiTextResponse } from "./gemini2.utils.js";
 import Feedback from "../models/feedback.model.js";
 import Chat from "../models/chat.model.js";
 import logger from "./logger.utils.js";
@@ -510,7 +510,7 @@ async function initBot(bot) {
 
         let response;
         try {
-            response = await geminiResponse(payload);
+            response = await geminiTextResponse(payload);
         } catch (responseError) {
             logger.error({
                 message: "Error getting Gemini response",

@@ -1,5 +1,4 @@
 import * as chrono from "chrono-node";
-import { CorrectReminderMessage } from "./gemini.utils.js";
 import Reminder from "../models/reminder.model.js";
 
 async function handleReminder(ctx) {
