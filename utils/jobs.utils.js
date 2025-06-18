@@ -1,7 +1,8 @@
 import cron from "node-cron";
 import Reminder from "../models/reminder.model.js";
+import Chat from "../models/chat.model.js";
 
-async function initJobs(bot) {
+async function initJobs({ bot }) {
     cron.schedule("* * * * *", async () => {
         const now = new Date();
         const previousMinute = new Date(now.getTime() - 60 * 1000);
@@ -23,6 +24,39 @@ async function initJobs(bot) {
             }
         } catch (err) {
             console.error("Reminder job failed:", err);
+        }
+    });
+
+    cron.schedule("* * * * *", async () => {
+        const now = new Date();
+
+        let chats;
+
+        try {
+            chats = await Chat.find({
+                isTemporary: true,
+                lastMessageAt: { $lt: new Date(now.getTime() - 5 * 60 * 1000) },
+            });
+        } catch (error) {
+            logger.error({
+                message: `Error fetching chats for cleanup: ${error.message}`,
+                error,
+            });
+            return;
+        }
+
+        for (let chat of chats) {
+            try {
+                chat.isTemporary = false;
+                chat.temporaryChatHistory = [];
+
+                await chat.save();
+            } catch (error) {
+                logger.error({
+                    message: `Error saving temporary chat cleanup: ${error.message}`,
+                    error,
+                });
+            }
         }
     });
 }

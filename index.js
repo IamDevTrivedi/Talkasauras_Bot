@@ -28,7 +28,7 @@ import { initJobs } from "./utils/jobs.utils.js";
 
 const bot = new Telegraf(config.TELEGRAM_BOT_TOKEN);
 initBot(bot);
-initJobs(bot);
+initJobs({ bot });
 
 bot.launch()
     .then(() => {
