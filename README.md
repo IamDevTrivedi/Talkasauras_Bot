@@ -57,25 +57,7 @@ A sophisticated AI-powered Telegram bot built with Google's Gemini AI 2.0 Flash,
 - **Broadcast System**: Admin-only mass messaging to all registered users
 - **User Management**: Complete user database tracking with MongoDB
 - **Feedback Monitoring**: Centralized feedback collection and admin notifications
-- **Health Monitoring**: Comprehensive system health endpoints
 - **Admin Authentication**: Username-based admin verification system
-
-### 📊 Health Monitoring & API
-
-- **Express.js Server**: Robust web server with health check endpoints
-- **Basic Health Check**: `/health` - Simple status verification
-- **Detailed Health Check**: `/health/detailed` - System uptime, memory, and CPU information
-- **Memory Monitoring**: `/health/memory` - Real-time memory usage statistics
-- **Database Health**: `/health/database` - MongoDB connection status and details
-
-### 🎨 Enhanced User Experience
-
-- **Visual Formatting**: Clean, professional message layouts with dividers and spacing
-- **Interactive Buttons**: Inline keyboards for external links (LinkedIn, GitHub, Portfolio)
-- **Typing Indicators**: Real-time typing status for natural conversation flow
-- **Error Handling**: Graceful error management with user-friendly messages
-- **Logging System**: Comprehensive logging with configurable levels
-- **Media Support**: Proper handling of unsupported media types with helpful responses
 
 ## 🚀 Quick Start
 
@@ -141,6 +123,14 @@ ADMIN_ARRAY=your_admin_username_here,another_admin_username_here
 # Enable or disable logging (true or false)
 LOGGING_ENABLED=false
 
+# IV_LENGTH is used for encryption/decryption
+# It should be 16 for AES encryption
+IV_LENGTH=16
+
+# SECRET_KEY is used for encryption/decryption
+# It should be a string of your choice, ideally 16, 24, or 32 bytes long
+SECRET_KEY=your_secret_key_here
+
 # MongoDB connection string - create one from:
 # https://cloud.mongodb.com/
 MONGODB_URL=mongodb+srv://username:password@cluster.mongodb.net/dbname?retryWrites=true&w=majority&appName=YourAppName
@@ -166,31 +156,24 @@ Or execute directly using Node:
 node index.js
 ```
 
-### Health Check Endpoints
-
-Once running, you can monitor the bot's health:
-
-- **Basic Health**: `http://localhost:5000/health`
-- **Detailed Health**: `http://localhost:5000/health/detailed`
-- **Memory Usage**: `http://localhost:5000/health/memory`
-- **Database Status**: `http://localhost:5000/health/database`
-
 ## 🔧 Configuration Guide
 
 ### Environment Variables
 
-| Variable                | Description                                  | Required |
-| ----------------------- | -------------------------------------------- | -------- |
-| `GOOGLE_GEMINI_API_KEY` | Google Gemini API key for AI functionality   | ✅       |
-| `ENVIRONMENT`           | Runtime environment (production/development) | ✅       |
-| `PORT_PROD`             | Production server port                       | ✅       |
-| `PORT_DEV`              | Development server port                      | ✅       |
-| `TELEGRAM_BOT_TOKEN`    | Bot token from @BotFather                    | ✅       |
-| `WEBHOOK_URL`           | Production webhook URL (for deployment)      | ⚠️       |
-| `MASTER_ADMIN`          | Primary admin Telegram username (without @)  | ✅       |
-| `ADMIN_ARRAY`           | Comma-separated admin Telegram usernames     | ❌       |
-| `LOGGING_ENABLED`       | Enable/disable comprehensive logging         | ❌       |
-| `MONGODB_URL`           | MongoDB connection string                    | ✅       |
+| Variable                | Description                                   | Required |
+| ----------------------- | --------------------------------------------- | -------- |
+| `GOOGLE_GEMINI_API_KEY` | Google Gemini API key for AI functionality    | ✅       |
+| `ENVIRONMENT`           | Runtime environment (production/development)  | ✅       |
+| `PORT_PROD`             | Production server port                        | ✅       |
+| `PORT_DEV`              | Development server port                       | ✅       |
+| `TELEGRAM_BOT_TOKEN`    | Bot token from @BotFather                     | ✅       |
+| `MASTER_ADMIN`          | Primary admin Telegram username (without @)   | ✅       |
+| `MONGODB_URL`           | MongoDB connection string                     | ✅       |
+| `IV_LENGTH`             | Initialization vector length (for encryption) | ✅       |
+| `SECRET_KEY`            | Secret key for encryption/decryption          | ✅       |
+| `WEBHOOK_URL`           | Production webhook URL (for deployment)       | ❌       |
+| `ADMIN_ARRAY`           | Comma-separated admin Telegram usernames      | ❌       |
+| `LOGGING_ENABLED`       | Enable/disable comprehensive logging          | ❌       |
 
 ### Getting API Keys
 
@@ -279,43 +262,6 @@ Once running, you can monitor the bot's health:
 - Search grounding for enhanced accuracy
 - Image generation capabilities with base64 handling
 
-#### Health Monitoring
-
-- Express.js REST API for system monitoring
-- Memory, CPU, and database health checks
-- Production-ready monitoring endpoints
-
-## 🏗️ Project Structure
-
-```
-Talkasauras_Bot/
-├── 📁 config.js              # Environment variables configuration
-├── 📁 index.js               # Main application entry point
-├── 📁 package.json           # Project dependencies and scripts
-├── 📁 pnpm-lock.yaml         # Package manager lock file
-├── 📁 README.md              # Project documentation
-├── 📁 TODO.txt               # Development roadmap
-├── 📁 controllers/
-│   └── health.controller.js  # Health check endpoints controller
-├── 📁 db/
-│   └── connect.db.js         # MongoDB connection setup
-├── 📁 models/
-│   ├── chat.model.js         # User chat and session data schema
-│   ├── feedback.model.js     # User feedback storage schema
-│   └── reminder.model.js     # Reminder system data schema
-├── 📁 routes/
-│   └── health.route.js       # Health monitoring API routes
-├── 📁 test-files/
-│   ├── chrono.js             # Natural language time parsing tests
-│   └── vercel-sdk.js         # AI SDK testing utilities
-└── 📁 utils/
-    ├── chrono.utils.js       # Reminder parsing and handling logic
-    ├── gemini.utils.js       # Google Gemini AI integration
-    ├── jobs.utils.js         # Cron job scheduler for reminders
-    ├── logger.utils.js       # Comprehensive logging system
-    └── telegram.utils.js     # Telegram bot initialization and handlers
-```
-
 ## 👨‍💻 Developer
 
 **Dev Trivedi**
@@ -323,70 +269,6 @@ Talkasauras_Bot/
 - 🔗 LinkedIn: [contact-devtrivedi](https://in.linkedin.com/in/contact-devtrivedi)
 - 💻 GitHub: [@IamDevTrivedi](https://github.com/IamDevTrivedi)
 - 🌐 Portfolio: [dev-trivedi.me](https://www.dev-trivedi.me)
-
-## 🚀 Deployment
-
-### Production Deployment
-
-1. **Environment Setup**
-
-    ```bash
-    # Set production environment
-    ENVIRONMENT=production
-    ```
-
-2. **Database Configuration**
-
-    - Use MongoDB Atlas for production
-    - Set up proper database indexes
-    - Configure connection pooling
-
-3. **Webhook Configuration**
-
-    ```bash
-    # Set your production webhook URL
-    WEBHOOK_URL=https://yourdomain.com/webhook
-    ```
-
-4. **Health Monitoring**
-    - Monitor `/health` endpoints
-    - Set up alerts for system health
-    - Monitor memory and database status
-
-### Development
-
-```bash
-# Install dependencies
-pnpm install
-
-# Start development server with auto-restart
-npm run dev
-
-# Format code
-npm run format
-```
-
-## 🔄 Roadmap
-
-### Current Features ✅
-
-- [x] AI-powered conversations with Google Gemini 2.0 Flash
-- [x] Smart reminder system with natural language processing
-- [x] AI image generation capabilities
-- [x] Advanced session management (persistent & temporary)
-- [x] Comprehensive health monitoring API
-- [x] Admin broadcast system
-- [x] User feedback collection
-
-### Planned Features 🔮
-
-- [ ] Redis caching for improved performance
-- [ ] Webhook integration for production deployment
-- [ ] Advanced analytics and user insights
-- [ ] Multi-language support
-- [ ] Voice message processing
-- [ ] Calendar integration for reminders
-- [ ] Custom AI personality settings
 
 ## 🙏 Acknowledgments
 
@@ -398,10 +280,6 @@ npm run format
 - [AI SDK](https://sdk.vercel.ai/) for streamlined AI integration
 - [Node-cron](https://github.com/node-cron/node-cron) for reliable task scheduling
 
-## � License
-
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
-
 ## Support & Contributing
 
 ### Getting Help
@@ -412,24 +290,6 @@ If you encounter any issues or have questions:
 2. Contact via [LinkedIn](https://in.linkedin.com/in/contact-devtrivedi)
 3. Use the `/feedback` command within the bot
 4. Visit the [Portfolio](https://www.dev-trivedi.me) for more projects
-
-### Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow the existing code style and formatting
-- Use meaningful commit messages
-- Test your changes thoroughly
-- Update documentation as needed
-- Ensure all health checks pass
 
 ---
 

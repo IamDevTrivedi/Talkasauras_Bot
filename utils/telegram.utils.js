@@ -70,10 +70,9 @@ async function initBot(bot) {
                 },
             ]);
         } catch (error) {
-            console.log(error);
             logger.error({
                 message: "An error occurred while configuring bot commands.",
-                error: error.message,
+                error: error,
             });
         }
     }
@@ -387,7 +386,10 @@ async function initBot(bot) {
                 },
             });
         } catch (error) {
-            console.error("Error in /remindme command:", error);
+            logger.error({
+                message: "Error in /remindme command",
+                error,
+            });
             await ctx.reply("❌ Something went wrong while setting your reminder.");
         }
     });

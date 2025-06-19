@@ -5,6 +5,7 @@ import RemoveMarkdown from "remove-markdown";
 import { createUser } from "./telegram.utils.js";
 import { generateText } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { decrypt, encrypt } from "./cipher.utils.js";
 
 async function geminiTextResponse(payload) {
     const { telegramId, firstName, userName, message, ctx } = payload;
@@ -20,20 +21,7 @@ async function geminiTextResponse(payload) {
         return "Sorry, something went wrong while setting up your profile.";
     }
 
-    let User;
-    try {
-        User = await Chat.findOne({ telegramId });
-        if (!User) {
-            throw new Error("User not found in database");
-        }
-    } catch (err) {
-        logger.error({
-            message: "Failed to fetch user from database",
-            error: err,
-            telegramId,
-        });
-        return "Sorry, we couldn't find your chat history. Please try again later.";
-    }
+    let User = await Chat.findOne({ telegramId });
 
     const now = Date.now();
     const sinceLast = now - User.lastMessageAt;
@@ -47,7 +35,15 @@ async function geminiTextResponse(payload) {
 
     let messages = historySource.map((msg) => ({
         role: msg.role === "model" ? "assistant" : "user",
-        content: [{ type: "text", text: msg.content }],
+        content: [
+            {
+                type: "text",
+                text: decrypt({
+                    iv: msg.iv,
+                    content: msg.content,
+                }),
+            },
+        ],
     }));
 
     messages.push({
@@ -87,14 +83,24 @@ async function geminiTextResponse(payload) {
 
     const response = result.text;
 
+    const userMessageEncoded = encrypt({
+        text: message,
+    });
+
     const userPart = {
         role: "user",
-        content: message,
+        content: userMessageEncoded.content,
+        iv: userMessageEncoded.iv,
     };
+
+    const modelMessageEncoded = encrypt({
+        text: response,
+    });
 
     const modelPart = {
         role: "model",
-        content: response,
+        content: modelMessageEncoded.content,
+        iv: modelMessageEncoded.iv,
     };
 
     if (isTemporary) {
@@ -154,15 +160,26 @@ async function geminiImageResponse(payload) {
 
     const messages = historySource.map((msg) => ({
         role: msg.role === "model" ? "assistant" : "user",
-        content: [{ type: "text", text: msg.content }],
+        content: [
+            {
+                type: "text",
+                text: decrypt({
+                    content: msg.content,
+                    iv: msg.iv,
+                }),
+            },
+        ],
     }));
 
-    const userPart = {
+    messages.push({
         role: "user",
-        content: message,
-    };
-
-    messages.push(userPart);
+        content: [
+            {
+                type: "text",
+                text: message,
+            },
+        ],
+    });
 
     let result;
 
@@ -186,9 +203,22 @@ async function geminiImageResponse(payload) {
         );
     }
 
+    const userMessageEncoded = encrypt({ text: message });
+
+    const userPart = {
+        role: "user",
+        content: userMessageEncoded.content,
+        iv: userMessageEncoded.iv,
+    };
+
+    const modelMessageEncoded = encrypt({
+        text: result.text || `Image generated for the prompt : "${message}"`,
+    });
+
     const modelPart = {
         role: "model",
-        content: result.text || `Image generated for the prompt : "${message}"`,
+        content: modelMessageEncoded.content,
+        iv: modelMessageEncoded.iv,
     };
 
     if (isTemporary) {

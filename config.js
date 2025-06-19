@@ -19,6 +19,9 @@ const config = {
         : process.env.MASTER_ADMIN
           ? [process.env.MASTER_ADMIN.trim()]
           : [],
+
+    IV_LENGTH: parseInt(process.env.IV_LENGTH),
+    SECRET_KEY: process.env.SECRET_KEY,
 };
 
 export default config;

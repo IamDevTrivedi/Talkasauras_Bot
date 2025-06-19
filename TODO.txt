@@ -1,6 +1,7 @@
 adding 
 // DONE ==> /remindme : user can message the bot to set a reminder and the bot will reply with a reminder message at the specified time
 // DONE ==> /imagine : user can message the bot to generate an image based on the provided prompt
+Add encription for temparary chat messages
 
 optimize
 adding redis for caching 

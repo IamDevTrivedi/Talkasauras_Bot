@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import Reminder from "../models/reminder.model.js";
 import Chat from "../models/chat.model.js";
+import logger from "./logger.utils.js";
 
 async function initJobs({ bot }) {
     cron.schedule("* * * * *", async () => {
@@ -23,7 +24,7 @@ async function initJobs({ bot }) {
                 await reminder.save();
             }
         } catch (err) {
-            console.error("Reminder job failed:", err);
+            logger.error({ message: "Reminder job failed", error: err });
         }
     });
 
