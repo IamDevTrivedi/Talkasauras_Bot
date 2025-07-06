@@ -286,7 +286,7 @@ node index.js
 
 If you encounter any issues or have questions:
 
-1. Check the [Issues](https://github.com/IamDevTrivedi/Talkasauras-Bot/issues) section
+1. Check the [Issues](https://github.com/IamDevTrivedi/Talkasauras_Bot/issues) section
 2. Contact via [LinkedIn](https://in.linkedin.com/in/contact-devtrivedi)
 3. Use the `/feedback` command within the bot
 4. Visit the [Portfolio](https://www.dev-trivedi.me) for more projects
