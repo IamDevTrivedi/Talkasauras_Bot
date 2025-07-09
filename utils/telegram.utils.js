@@ -4,23 +4,30 @@ import Chat from "../models/chat.model.js";
 import logger from "./logger.utils.js";
 import config from "../config.js";
 import { handleReminder } from "./chrono.utils.js";
+import { userCache } from "./cache.utils.js";
 
 const createUser = async (ctx) => {
-    let chat = await Chat.findOne({ telegramId: ctx.from.id });
+    const telegramId = ctx.from.id;
+
+    let chat = userCache.get(telegramId);
 
     if (!chat) {
-        chat = new Chat({
-            firstName: ctx.from.first_name,
-            userName: ctx.from.username,
-            telegramId: ctx.from.id,
-        });
-    }
+        chat = await Chat.findOne({ telegramId });
 
-    // NOTE : redis can be implemented here to store the user data temporarily
-    await chat.save();
+        if (!chat) {
+            chat = new Chat({
+                firstName: ctx.from.first_name,
+                userName: ctx.from.username,
+                telegramId: ctx.from.id,
+            });
+        }
+
+        await chat.save();
+        userCache.set(telegramId, chat);
+    }
 };
 
-async function initBot(bot) {
+async function initBot({ bot }) {
     {
         try {
             await bot.telegram.setMyCommands([

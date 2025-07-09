@@ -13,7 +13,7 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "packageManager": "pnpm@10.12.1",
+    "packageManager": "pnpm@10.13.1",
     "dependencies": {
         "@ai-sdk/google": "^1.2.19",
         "@google/genai": "^0.12.0",
@@ -23,6 +23,7 @@
         "express": "^5.1.0",
         "marked": "^15.0.11",
         "mongoose": "^8.13.2",
+        "node-cache": "^5.1.2",
         "node-cron": "^4.1.0",
         "remove-markdown": "^0.6.2",
         "telegraf": "^4.16.3"
