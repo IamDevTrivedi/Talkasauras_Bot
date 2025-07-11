@@ -190,6 +190,7 @@ async function initBot({ bot }) {
                     "📨 /contact — Reach out directly to the development team.",
                     "📝 /feedback — Share your feedback or suggestions to help improve the system.",
                     "⏰ /remindme — Send only /remindme, then reply to the newly sent message — Done, you're set.",
+                    "🖼️ /imagine — Generate an image based on a text prompt. Reply to the /imagine command with your prompt to receive an image.",
                     "If you require assistance at any time, please enter /help to revisit this guide. The system is here to support you.",
                 ].join("\n\n");
 
