@@ -54,7 +54,7 @@ async function geminiTextResponse(payload) {
     let result;
     try {
         result = await generateText({
-            model: google("gemini-2.0-flash", {
+            model: google("gemini-2.5-flash", {
                 useSearchGrounding: true,
             }),
             providerOptions: {
