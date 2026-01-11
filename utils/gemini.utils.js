@@ -122,8 +122,138 @@ async function geminiTextResponse(payload) {
     return RemoveMarkdown(response);
 }
 
+// async function geminiImageResponse(payload) {
+//     const { telegramId, firstName, userName, message, ctx } = payload;
+
+//     try {
+//         await createUser(ctx);
+//     } catch (error) {
+//         logger.error({
+//             message: "Failed to create or update user in Telegram context",
+//             error,
+//         });
+//         return await ctx.reply("Sorry, something went wrong while setting up your profile.");
+//     }
+
+//     let User;
+
+//     try {
+//         User = await Chat.findOne({ telegramId });
+//     } catch (error) {
+//         logger.error({
+//             message: "Failed to fetch user from database",
+//             error,
+//             telegramId,
+//         });
+//         return await ctx.reply("Couldn't find your chat history. Please try again later.");
+//     }
+
+//     const now = Date.now();
+//     const sinceLast = now - User.lastMessageAt;
+//     const isTemporary = User.isTemporary && sinceLast < 1000 * 60 * 5;
+
+//     const historySource = isTemporary ? User.temporaryChatHistory : User.chatHistory;
+
+//     const google = createGoogleGenerativeAI({
+//         apiKey: config.GOOGLE_GEMINI_API_KEY,
+//     });
+
+//     const messages = historySource.map((msg) => ({
+//         role: msg.role === "model" ? "assistant" : "user",
+//         content: [
+//             {
+//                 type: "text",
+//                 text: decrypt({
+//                     content: msg.content,
+//                     iv: msg.iv,
+//                 }),
+//             },
+//         ],
+//     }));
+
+//     messages.push({
+//         role: "user",
+//         content: [
+//             {
+//                 type: "text",
+//                 text: message,
+//             },
+//         ],
+//     });
+
+//     let result;
+
+//     try {
+//         result = await generateText({
+//             model: google("gemini-2.5-flash-image"),
+//             providerOptions: {
+//                 google: { responseModalities: ["TEXT", "IMAGE"] },
+//             },
+//             prompt: message,
+//         });
+//     } catch (err) {
+//         logger.error({
+//             message: "Failed to generate response using Gemini AI",
+//             error: err,
+//             telegramId,
+//             messageContent: message,
+//         });
+//         return await ctx.reply(
+//             "I'm having trouble responding right now. Please try again shortly."
+//         );
+//     }
+
+//     const userMessageEncoded = encrypt({ text: message });
+
+//     const userPart = {
+//         role: "user",
+//         content: userMessageEncoded.content,
+//         iv: userMessageEncoded.iv,
+//     };
+
+//     const modelMessageEncoded = encrypt({
+//         text: result.text || `Image generated for the prompt : "${message}"`,
+//     });
+
+//     const modelPart = {
+//         role: "model",
+//         content: modelMessageEncoded.content,
+//         iv: modelMessageEncoded.iv,
+//     };
+
+//     if (isTemporary) {
+//         User.temporaryChatHistory.push(userPart, modelPart);
+//     } else {
+//         User.chatHistory.push(userPart, modelPart);
+//     }
+
+//     await User.save();
+
+//     const imageFiles = result.files?.filter((file) => file.mimeType.startsWith("image/")) || [];
+
+//     for (const file of imageFiles) {
+//         const buffer = Buffer.from(file.base64Data, "base64");
+
+//         try {
+//             await ctx.replyWithPhoto({ source: buffer });
+//         } catch (err) {
+//             logger.error({
+//                 message: "Failed to send image to Telegram user",
+//                 error: err,
+//                 telegramId,
+//             });
+//         }
+//     }
+
+//     if (result.text) {
+//         await ctx.reply(`📝 ${result.text}`);
+//     } else if (imageFiles.length === 0) {
+//         await ctx.reply("I couldn't generate anything this time. Try again?");
+//     }
+// }
+
 async function geminiImageResponse(payload) {
-    const { telegramId, firstName, userName, message, ctx } = payload;
+    const { telegramId, message, ctx } = payload;
 
     try {
         await createUser(ctx);
@@ -152,59 +282,11 @@ async function geminiImageResponse(payload) {
     const sinceLast = now - User.lastMessageAt;
     const isTemporary = User.isTemporary && sinceLast < 1000 * 60 * 5;
 
-    const historySource = isTemporary ? User.temporaryChatHistory : User.chatHistory;
-
-    const google = createGoogleGenerativeAI({
-        apiKey: config.GOOGLE_GEMINI_API_KEY,
-    });
-
-    const messages = historySource.map((msg) => ({
-        role: msg.role === "model" ? "assistant" : "user",
-        content: [
-            {
-                type: "text",
-                text: decrypt({
-                    content: msg.content,
-                    iv: msg.iv,
-                }),
-            },
-        ],
-    }));
-
-    messages.push({
-        role: "user",
-        content: [
-            {
-                type: "text",
-                text: message,
-            },
-        ],
-    });
-
-    let result;
-
-    try {
-        result = await generateText({
-            model: google("gemini-2.0-flash-exp"),
-            providerOptions: {
-                google: { responseModalities: ["TEXT", "IMAGE"] },
-            },
-            prompt: message,
-        });
-    } catch (err) {
-        logger.error({
-            message: "Failed to generate response using Gemini AI",
-            error: err,
-            telegramId,
-            messageContent: message,
-        });
-        return await ctx.reply(
-            "I'm having trouble responding right now. Please try again shortly."
-        );
-    }
+    // Encode prompt for URL
+    const encodedPrompt = encodeURIComponent(message);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true`;
 
     const userMessageEncoded = encrypt({ text: message });
-
     const userPart = {
         role: "user",
         content: userMessageEncoded.content,
@@ -212,7 +294,7 @@ async function geminiImageResponse(payload) {
     };
 
     const modelMessageEncoded = encrypt({
-        text: result.text || `Image generated for the prompt : "${message}"`,
+        text: `Image generated for the prompt: "${message}"`,
     });
 
     const modelPart = {
@@ -229,26 +311,15 @@ async function geminiImageResponse(payload) {
 
     await User.save();
 
-    const imageFiles = result.files?.filter((file) => file.mimeType.startsWith("image/")) || [];
-
-    for (const file of imageFiles) {
-        const buffer = Buffer.from(file.base64Data, "base64");
-
-        try {
-            await ctx.replyWithPhoto({ source: buffer });
-        } catch (err) {
-            logger.error({
-                message: "Failed to send image to Telegram user",
-                error: err,
-                telegramId,
-            });
-        }
-    }
-
-    if (result.text) {
-        await ctx.reply(`📝 ${result.text}`);
-    } else if (imageFiles.length === 0) {
-        await ctx.reply("I couldn't generate anything this time. Try again?");
+    try {
+        await ctx.replyWithPhoto({ url: imageUrl });
+    } catch (err) {
+        logger.error({
+            message: "Failed to send image to Telegram user",
+            error: err,
+            telegramId,
+        });
+        await ctx.reply("I couldn't generate the image. Please try again.");
     }
 }
 

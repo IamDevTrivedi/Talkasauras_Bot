@@ -1,10 +1,10 @@
-import cron from "node-cron";
+// import cron from "node-cron";
 import Reminder from "../models/reminder.model.js";
 import Chat from "../models/chat.model.js";
 import logger from "./logger.utils.js";
 
 async function initJobs({ bot }) {
-    cron.schedule("* * * * *", async () => {
+    setInterval(async () => {
         const now = new Date();
         const previousMinute = new Date(now.getTime() - 60 * 1000);
         const nextMinute = new Date(now.getTime() + 60 * 1000);
@@ -26,9 +26,9 @@ async function initJobs({ bot }) {
         } catch (err) {
             logger.error({ message: "Reminder job failed", error: err });
         }
-    });
+    }, 60 * 1000);
 
-    cron.schedule("* * * * *", async () => {
+    setInterval(async () => {
         const now = new Date();
 
         let chats;
@@ -59,7 +59,7 @@ async function initJobs({ bot }) {
                 });
             }
         }
-    });
+    }, 2 * 60 * 1000);
 }
 
 export { initJobs };
