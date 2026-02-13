@@ -11,6 +11,12 @@ const envSchema = z
         PORT: z.int().min(3000).max(5050),
 
         DATABASE_URL: z.url(),
+
+        REDIS_USERNAME: z.string().min(1),
+        REDIS_PASSWORD: z.string().min(1),
+        REDIS_HOST: z.string().min(1),
+        REDIS_PORT: z.int().min(1).max(65535),
+        LOCAL_REDIS: z.boolean(),
     })
     .strict();
 

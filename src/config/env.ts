@@ -38,5 +38,12 @@ export const env = {
     isDevelopment: NODE_ENV === "development",
 
     PORT: Number(process.env.PORT),
+
     DATABASE_URL: String(process.env.DATABASE_URL),
+
+    REDIS_USERNAME: String(process.env.REDIS_USERNAME),
+    REDIS_PASSWORD: String(process.env.REDIS_PASSWORD),
+    REDIS_HOST: String(process.env.REDIS_HOST),
+    REDIS_PORT: Number(process.env.REDIS_PORT),
+    LOCAL_REDIS: process.env.LOCAL_REDIS === "1",
 } as const;
