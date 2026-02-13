@@ -2,28 +2,35 @@ import process from "node:process";
 import dotenv from "dotenv";
 import fs from "fs";
 
-const devEnvPath = "./.env.development";
-const prodEnvPath = "./.env.production";
+const ENV_FILES = {
+    development: "./.env.development",
+    production: "./.env.production",
+} as const;
 
 const NODE_ENV = process.env.NODE_ENV as "development" | "production";
-if (NODE_ENV === "development") {
-    if (fs.existsSync(devEnvPath)) {
-        dotenv.config({ path: devEnvPath });
+
+const loadEnvironmentConfig = (): void => {
+    const envPath = ENV_FILES[NODE_ENV];
+
+    if (NODE_ENV === "development") {
+        if (!fs.existsSync(envPath)) {
+            console.error(`Error: ${envPath} not found.`);
+            process.exit(1);
+        }
+        dotenv.config({ path: envPath });
     } else {
-        console.error(`Error: ${devEnvPath} not found.`);
-        process.exit(1);
+        if (fs.existsSync(envPath)) {
+            dotenv.config({ path: envPath });
+        } else {
+            console.warn(
+                `Warning: ${envPath} not found. Falling back to default environment variables.`
+            );
+            dotenv.config();
+        }
     }
-} else {
-    if (fs.existsSync(prodEnvPath)) {
-        dotenv.config({ path: prodEnvPath });
-    } else {
-        // NOTE: In production, we can still run with default environment variables if the .env.production file is missing
-        console.warn(
-            `Warning: ${prodEnvPath} not found. Falling back to default environment variables.`
-        );
-        dotenv.config();
-    }
-}
+};
+
+loadEnvironmentConfig();
 
 export const env = {
     NODE_ENV,
@@ -31,4 +38,5 @@ export const env = {
     isDevelopment: NODE_ENV === "development",
 
     PORT: Number(process.env.PORT),
+    DATABASE_URL: String(process.env.DATABASE_URL),
 } as const;

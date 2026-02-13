@@ -65,3 +65,6 @@ Thumbs.db
 # .mmdb file: this is a large binary file used for geolocation
 *.mmdb
 *.mmdb.*
+
+# Generated files (e.g., Prisma client, TypeScript declaration files)
+src/generated/

@@ -1,10 +1,18 @@
 import { env } from "@/config/env";
+import { logger } from "@/utils/logger";
 import { z } from "zod";
 
-const envSchema = z.object({
-    NODE_ENV: z.enum(["development", "production"]),
-    PORT: z.int().min(3000).max(5050),
-});
+const envSchema = z
+    .object({
+        NODE_ENV: z.enum(["development", "production"]),
+        isProduction: z.boolean(),
+        isDevelopment: z.boolean(),
+
+        PORT: z.int().min(3000).max(5050),
+
+        DATABASE_URL: z.url(),
+    })
+    .strict();
 
 export const checkEnv = () => {
     const result = envSchema.safeParse(env);
@@ -13,7 +21,7 @@ export const checkEnv = () => {
         console.error("Environment variable validation failed:", z.treeifyError(result.error));
         process.exit(1);
     } else {
-        console.log("Environment variables validated successfully.");
+        logger.info("Environment variables validated successfully.");
     }
 };
 
