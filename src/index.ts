@@ -1,7 +1,7 @@
-import { checkEnv } from "@config/checkEnv";
-import { connectDB } from "@db/prisma";
-import { connectRedis } from "@db/redis";
-import { shutdownManager } from "@/shutdown";
+import { checkEnv } from "@/config/checkEnv.js";
+import { connectDB } from "@/db/prisma.js";
+import { connectRedis } from "@/db/redis.js";
+import { shutdownManager } from "@/shutdown.js";
 
 const init = async () => {
     checkEnv();

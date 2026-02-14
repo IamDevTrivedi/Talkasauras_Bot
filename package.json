@@ -2,6 +2,7 @@
     "name": "talkasauras_bot",
     "version": "0.0.1",
     "description": "A telegram bot",
+    "type": "module",
     "main": "./build/index.js",
     "scripts": {
         "build": "tsc && tsc-alias",

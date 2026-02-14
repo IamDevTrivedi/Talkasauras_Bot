@@ -27,14 +27,6 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["./src/*"],
-            "@config/*": ["./src/config/*"],
-            "@routes/*": ["./src/routes/*"],
-            "@controllers/*": ["./src/controllers/*"],
-            "@middlewares/*": ["./src/middlewares/*"],
-            "@services/*": ["./src/services/*"],
-            "@utils/*": ["./src/utils/*"],
-            "@types/*": ["./src/types/*"],
-            "@db/*": ["./src/db/*"]
         }
     },
     "include": ["src/**/*.ts"],

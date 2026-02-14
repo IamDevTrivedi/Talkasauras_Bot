@@ -1,6 +1,6 @@
 import pino from "pino";
 import path from "path";
-import { env } from "@config/env";
+import { env } from "@/config/env.js";
 
 const logDir = path.join(process.cwd(), "logs");
 const isProd = env.isProduction;

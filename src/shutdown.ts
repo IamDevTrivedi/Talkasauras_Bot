@@ -1,6 +1,6 @@
-import { logger } from "@utils/logger";
-import { disconnectDB } from "@db/prisma";
-import { disconnectRedis } from "@db/redis";
+import { logger } from "@/utils/logger.js";
+import { disconnectDB } from "@/db/prisma.js";
+import { disconnectRedis } from "@/db/redis.js";
 
 let isShuttingDown = false;
 
