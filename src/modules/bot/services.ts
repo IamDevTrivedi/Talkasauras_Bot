@@ -5,7 +5,7 @@ export const services = {
     prepare: async () => {
         try {
             bot.on("text", async (ctx) => {
-                logger.info(ctx.message.text);
+                logger.debug(ctx.message.text);
                 await ctx.reply("Hello! This is a response from your bot.");
             });
         } catch (error) {

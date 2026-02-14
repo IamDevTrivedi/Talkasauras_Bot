@@ -19,6 +19,18 @@ const envSchema = z
         LOCAL_REDIS: z.boolean(),
 
         TELEGRAM_BOT_TOKEN: z.string().min(1),
+
+        OLLAMA: z.object({
+            PROVIDER: z.enum(["HF", "LOCAL", "MOCK", "CLOUD"]),
+            API_KEY: z.string().min(1),
+            HOSTS: z.object({
+                HF: z.url(),
+                LOCAL: z.url(),
+                MOCK: z.url(),
+                CLOUD: z.url(),
+            }),
+            BASE_URL: z.url(),
+        }),
     })
     .strict();
 

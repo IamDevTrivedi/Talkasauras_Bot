@@ -48,4 +48,31 @@ export const env = {
     LOCAL_REDIS: process.env.LOCAL_REDIS === "1",
 
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN as string,
+
+    OLLAMA: {
+        PROVIDER: process.env.PROVIDER as "HF" | "LOCAL" | "MOCK" | "CLOUD",
+        API_KEY: process.env.API_KEY as string,
+
+        HOSTS: {
+            HF: process.env.OLLAMA_HOST_HF as string,
+            LOCAL: process.env.OLLAMA_HOST_LOCAL as string,
+            MOCK: process.env.OLLAMA_HOST_MOCK as string,
+            CLOUD: process.env.OLLAMA_HOST_CLOUD as string,
+        },
+
+        BASE_URL: (() => {
+            switch (process.env.PROVIDER) {
+                case "HF":
+                    return process.env.OLLAMA_HOST_HF as string;
+                case "LOCAL":
+                    return process.env.OLLAMA_HOST_LOCAL as string;
+                case "MOCK":
+                    return process.env.OLLAMA_HOST_MOCK as string;
+                case "CLOUD":
+                    return process.env.OLLAMA_HOST_CLOUD as string;
+                default:
+                    process.exit(1);
+            }
+        })(),
+    },
 } as const;
