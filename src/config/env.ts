@@ -39,11 +39,13 @@ export const env = {
 
     PORT: Number(process.env.PORT),
 
-    DATABASE_URL: String(process.env.DATABASE_URL),
+    DATABASE_URL: process.env.DATABASE_URL as string,
 
-    REDIS_USERNAME: String(process.env.REDIS_USERNAME),
-    REDIS_PASSWORD: String(process.env.REDIS_PASSWORD),
-    REDIS_HOST: String(process.env.REDIS_HOST),
+    REDIS_USERNAME: process.env.REDIS_USERNAME as string,
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD as string,
+    REDIS_HOST: process.env.REDIS_HOST as string,
     REDIS_PORT: Number(process.env.REDIS_PORT),
     LOCAL_REDIS: process.env.LOCAL_REDIS === "1",
+
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN as string,
 } as const;

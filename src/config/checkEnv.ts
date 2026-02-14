@@ -17,6 +17,8 @@ const envSchema = z
         REDIS_HOST: z.string().min(1),
         REDIS_PORT: z.int().min(1).max(65535),
         LOCAL_REDIS: z.boolean(),
+
+        TELEGRAM_BOT_TOKEN: z.string().min(1),
     })
     .strict();
 
