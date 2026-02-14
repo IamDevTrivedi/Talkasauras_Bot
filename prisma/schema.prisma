@@ -1,8 +1,52 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum WritingStyle {
+  DEFAULT
+  FORMAL
+  DESCRIPTIVE
+  CONCISE
+}
+
+enum Model {
+  DEFAULT
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model User {
+  telegramIdHash String @id
+
+  customInstructions String       @default("")
+  writingStyle       WritingStyle @default(DEFAULT)
+  model              Model        @default(DEFAULT)
+
+  temporaryOn Boolean @default(false)
+
+  keyVersion Int @default(1)
+
+  createdAt  BigInt
+  lastActive BigInt
+}
+
+model Message {
+  id             String @id @default(uuid())
+  telegramIdHash String
+
+  content Bytes
+  role    Bytes
+  nonce   Bytes
+
+  isTemporary Boolean @default(false)
+  createdAt   BigInt
 }
