@@ -14,7 +14,7 @@ export const connectOllama = () => {
 
         case "CLOUD":
             ollama = new Ollama({
-                host: "https://ollama.com",
+                host: env.OLLAMA.HOSTS.CLOUD,
                 headers: { Authorization: "Bearer " + env.OLLAMA.API_KEY },
             });
             break;
