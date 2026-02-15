@@ -7,7 +7,7 @@ import { env } from "@/config/env.js";
 const connectionString = env.DATABASE_URL;
 
 const adapter = new PrismaPg({ connectionString });
-const prisma = new PrismaClient({ adapter });
+export const prisma = new PrismaClient({ adapter });
 
 process.on("beforeExit", async () => {
     await prisma.$disconnect();
