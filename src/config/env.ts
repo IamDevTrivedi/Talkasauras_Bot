@@ -75,4 +75,10 @@ export const env = {
             }
         })(),
     },
+
+    KEYS: {
+        SECRET_KEY_1: process.env.SECRET_KEY_1 as string,
+        SECRET_KEY_2: process.env.SECRET_KEY_2 as string,
+        VERSION: Number(process.env.KEYS_VERSION),
+    },
 } as const;

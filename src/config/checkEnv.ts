@@ -31,6 +31,12 @@ const envSchema = z
             }),
             BASE_URL: z.url(),
         }),
+
+        KEYS: z.object({
+            SECRET_KEY_1: z.string().min(32),
+            SECRET_KEY_2: z.string().min(32),
+            VERSION: z.int().min(1),
+        }),
     })
     .strict();
 
