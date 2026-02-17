@@ -2,16 +2,16 @@ import { bot } from "@/config/bot.js";
 import { env } from "@/config/env.js";
 import { prisma } from "@/db/prisma.js";
 import { redisClient } from "@/db/redis.js";
-import { generateBytes, generateKey, HMAC } from '@/utils/crypto.js';
+import { decrypt, encrypt, generateBytes, generateKey, HMAC } from "@/utils/crypto.js";
 import { logger } from "@/utils/logger.js";
 import { lastActivityQueue, QueueNames } from "../queue/index.js";
 import { Markup } from "telegraf";
 import { WritingStyle } from "@prisma/client";
+import { TEMPORARY_MSG_TIMEOUT } from "@/constants/app.js";
 
 export const services = {
     prepare: async () => {
         try {
-
             bot.use(async (ctx, next) => {
                 const { id } = ctx.from!;
                 if (!id) {
@@ -26,22 +26,9 @@ export const services = {
                     key: env.KEYS.SECRET_KEY_1,
                 });
 
-                const nonce = generateBytes({
-                    length: 16,
-                });
-
-                const encryptionKey = generateKey({
-                    masterKey: String(id),
-                    secretKey: env.KEYS.SECRET_KEY_2,
-                })
-
                 ctx.state.telegramIdHash = telegramIdHash;
-                ctx.state.nonce = nonce;
-                ctx.state.encryptionKey = encryptionKey;
-
                 await next();
             });
-
 
             bot.use(async (ctx, next) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
@@ -77,19 +64,15 @@ export const services = {
                 await next();
             });
 
-
             bot.use(async (ctx, next) => {
                 try {
-
-                    const c = await prisma.user.count({
+                    await prisma.user.count({
                         where: {
                             telegramIdHash: ctx.state.telegramIdHash,
-                        }
+                        },
                     });
 
-                    console.log(c);
                     return await next();
-
                 } catch (error) {
                     logger.error("Error in message handling", error);
                     await ctx.reply(
@@ -98,7 +81,6 @@ export const services = {
                 }
             });
 
-
             bot.start((ctx) => {
                 const name = ctx.from?.first_name || "there";
                 ctx.reply(
@@ -106,13 +88,11 @@ export const services = {
                 );
             });
 
-
             bot.command("about", (ctx) => {
                 ctx.reply(
                     `Talkasauras Bot\n\nAn AI-powered Telegram bot that lets you have natural conversations. Built with love by Dev Trivedi.`
                 );
             });
-
 
             bot.command("help", (ctx) => {
                 ctx.reply(
@@ -120,20 +100,17 @@ export const services = {
                 );
             });
 
-
             bot.command("contact", (ctx) => {
                 ctx.reply(
                     `Developer: Dev Trivedi\n\nGitHub: https://github.com/IamDevTrivedi/\nLinkedIn: https://www.linkedin.com/in/contact-devtrivedi/\nPortfolio: https://www.dev-trivedi.me/`
                 );
             });
 
-
             bot.command("feedback", (ctx) => {
                 ctx.reply("Please reply to this message with your valued feedback", {
                     reply_markup: { force_reply: true },
                 });
             });
-
 
             bot.command("clear", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
@@ -151,7 +128,6 @@ export const services = {
                 }
             });
 
-
             bot.command("current_mode", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
 
@@ -164,7 +140,7 @@ export const services = {
                         `Your current bot is set to: ${user!.temporaryOn ? "Temporary Mode" : "Default Mode"}\n\n` +
                         `To change the current mode:\n` +
                         `/temporary_off - Switch back to Default Mode\n` +
-                        `/temporary_on - Switch to Temporary Mode (resets after 10 minutes of inactivity)`
+                        `/temporary_on - Switch to Temporary Mode (resets after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity)`
                     );
                 } catch (error) {
                     logger.error("Failed to fetch user for current_mode command", error);
@@ -174,7 +150,6 @@ export const services = {
                     return;
                 }
             });
-
 
             bot.command("temporary_on", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
@@ -186,7 +161,7 @@ export const services = {
                     });
                     await ctx.reply(
                         "Temporary Mode is now ON.\n\n" +
-                        "New messages will be marked as temporary and automatically deleted when you switch back to Default Mode or 10 minutes of inactivity.\n\n" +
+                        `New messages will be marked as temporary and automatically deleted when you switch back to Default Mode or ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity.\n\n` +
                         "Use /temporary_off to switch back."
                     );
                 } catch (error) {
@@ -196,7 +171,6 @@ export const services = {
                     );
                 }
             });
-
 
             bot.command("temporary_off", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
@@ -227,7 +201,6 @@ export const services = {
                 }
             });
 
-
             bot.command("custom_instructions", async (ctx) => {
                 ctx.reply(
                     "Please reply to this message with your custom instructions for the bot.\n\n" +
@@ -236,7 +209,6 @@ export const services = {
                     { reply_markup: { force_reply: true } }
                 );
             });
-
 
             bot.command("writing_style", async (ctx) => {
                 await ctx.reply(
@@ -250,14 +222,12 @@ export const services = {
                 );
             });
 
-
             const writingStyleLabels: Record<WritingStyle, string> = {
                 DEFAULT: "Default",
                 FORMAL: "Formal",
                 DESCRIPTIVE: "Descriptive",
                 CONCISE: "Concise",
             };
-
 
             bot.action(/^ws:(.+)$/, async (ctx) => {
                 const style = ctx.match[1] as WritingStyle;
@@ -288,7 +258,6 @@ export const services = {
                     await ctx.answerCbQuery("Something went wrong. Please try again.");
                 }
             });
-
 
             bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
@@ -324,8 +293,7 @@ export const services = {
                 return next();
             });
 
-
-            bot.on("message", async (ctx) => {
+            bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
                 if (
                     "reply_to_message" in msg &&
@@ -356,6 +324,125 @@ export const services = {
                     }
                     return;
                 }
+
+                return await next();
+            });
+
+            bot.on("text", async (ctx) => {
+                const { id } = ctx.from!;
+                const telegramIdHash = ctx.state.telegramIdHash as string;
+
+                const nonce1 = generateBytes({
+                    length: 16,
+                });
+
+                const nonce2 = generateBytes({
+                    length: 16,
+                });
+
+                const encryptionKey = generateKey({
+                    secretKey: env.KEYS.SECRET_KEY_2,
+                    masterKey: String(id),
+                });
+
+                const { text: newMsg } = ctx.message;
+
+                const user = await prisma.user.findUnique({
+                    where: {
+                        telegramIdHash,
+                    },
+                });
+
+                if (!user) {
+                    await ctx.reply("Sorry, something went wrong. Please try again later.");
+                    return;
+                }
+
+                let isActualTemporary = false;
+                if (user.temporaryOn) {
+                    if (Date.now() - Number(user.lastActive) <= TEMPORARY_MSG_TIMEOUT) {
+                        isActualTemporary = true;
+                    }
+                }
+
+                const prevMsgs = await prisma.message.findMany({
+                    where: {
+                        telegramIdHash,
+                        isTemporary: isActualTemporary,
+                    },
+                    select: {
+                        role: true,
+                        content: true,
+                        nonce: true,
+                    },
+                });
+
+                const preMsgsDecrypted = prevMsgs.map((msg) => {
+                    return {
+                        role: msg.role,
+                        content: decrypt({
+                            data: msg.content,
+                            nonce: msg.nonce,
+                            key: encryptionKey,
+                        }),
+                    };
+                });
+
+                preMsgsDecrypted.push({
+                    role: "user",
+                    content: newMsg,
+                });
+
+                // MOCK
+                const AIReply = "this is a fucking AI";
+
+                type Part = {
+                    role: "user" | "assistant";
+                    content: string;
+                    nonce: string;
+                };
+
+                const userPart: Part = {
+                    role: "user",
+                    nonce: nonce1,
+                    content: encrypt({
+                        data: newMsg,
+                        key: encryptionKey,
+                        nonce: nonce1,
+                    }),
+                };
+
+                const AIPart: Part = {
+                    role: "assistant",
+                    nonce: nonce2,
+                    content: encrypt({
+                        data: AIReply,
+                        key: encryptionKey,
+                        nonce: nonce2,
+                    }),
+                };
+
+                await prisma.message.create({
+                    data: {
+                        content: userPart.content,
+                        createdAt: BigInt(Date.now()),
+                        nonce: userPart.nonce,
+                        role: userPart.role,
+                        telegramIdHash,
+                        isTemporary: isActualTemporary,
+                    },
+                });
+
+                await prisma.message.create({
+                    data: {
+                        content: AIPart.content,
+                        createdAt: BigInt(Date.now()),
+                        nonce: AIPart.nonce,
+                        role: AIPart.role,
+                        telegramIdHash,
+                        isTemporary: isActualTemporary,
+                    },
+                });
             });
         } catch (error) {
             logger.error("Failed to prepare bot", error);
