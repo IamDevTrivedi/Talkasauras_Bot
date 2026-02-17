@@ -15,7 +15,7 @@ export const updateLastActivity = async (job: Job<UpdateLastActivityJobData>) =>
             },
             data: {
                 lastActive: BigInt(job.data.lastActive),
-            }
+            },
         });
     } catch (error) {
         logger.error("Error updating last activity:", error);

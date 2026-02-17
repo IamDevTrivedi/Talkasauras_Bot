@@ -109,7 +109,9 @@ export const services = {
                     await ctx.reply("Your conversation history has been cleared.");
                 } catch (error) {
                     logger.error("Failed to clear conversation history", error);
-                    await ctx.reply("Sorry, I couldn't clear your conversation history. Please try again later.");
+                    await ctx.reply(
+                        "Sorry, I couldn't clear your conversation history. Please try again later."
+                    );
                 }
             });
 
@@ -128,14 +130,15 @@ export const services = {
 
                     await ctx.reply(
                         `Your current bot is set to: ${user!.temporaryOn ? "Temporary Mode" : "Default Mode"}\n\n` +
-                        `To change the current mode:\n` +
-                        `/temporary_off - Switch back to Default Mode\n` +
-                        `/temporary_on - Switch to Temporary Mode (resets after 10 minutes of inactivity)`
+                            `To change the current mode:\n` +
+                            `/temporary_off - Switch back to Default Mode\n` +
+                            `/temporary_on - Switch to Temporary Mode (resets after 10 minutes of inactivity)`
                     );
-                }
-                catch (error) {
+                } catch (error) {
                     logger.error("Failed to fetch user for current_mode command", error);
-                    await ctx.reply("Sorry, I couldn't fetch your current mode. Please try again later.");
+                    await ctx.reply(
+                        "Sorry, I couldn't fetch your current mode. Please try again later."
+                    );
                     return;
                 }
             });
@@ -155,12 +158,14 @@ export const services = {
                     });
                     await ctx.reply(
                         "Temporary Mode is now ON.\n\n" +
-                        "New messages will be marked as temporary and automatically deleted when you switch back to Default Mode or 10 minutes of inactivity.\n\n" +
-                        "Use /temporary_off to switch back."
+                            "New messages will be marked as temporary and automatically deleted when you switch back to Default Mode or 10 minutes of inactivity.\n\n" +
+                            "Use /temporary_off to switch back."
                     );
                 } catch (error) {
                     logger.error("Failed to enable temporary mode", error);
-                    await ctx.reply("Sorry, I couldn't enable Temporary Mode. Please try again later.");
+                    await ctx.reply(
+                        "Sorry, I couldn't enable Temporary Mode. Please try again later."
+                    );
                 }
             });
 
@@ -187,12 +192,14 @@ export const services = {
 
                     await ctx.reply(
                         "Temporary Mode is now OFF.\n\n" +
-                        "All temporary messages have been deleted. You are now back to Default Mode.\n\n" +
-                        "Use /temporary_on to switch to Temporary Mode again."
+                            "All temporary messages have been deleted. You are now back to Default Mode.\n\n" +
+                            "Use /temporary_on to switch to Temporary Mode again."
                     );
                 } catch (error) {
                     logger.error("Failed to disable temporary mode", error);
-                    await ctx.reply("Sorry, I couldn't disable Temporary Mode. Please try again later.");
+                    await ctx.reply(
+                        "Sorry, I couldn't disable Temporary Mode. Please try again later."
+                    );
                 }
             });
 
@@ -200,8 +207,8 @@ export const services = {
             bot.command("custom_instructions", async (ctx) => {
                 ctx.reply(
                     "Please reply to this message with your custom instructions for the bot.\n\n" +
-                    "These instructions will personalize how I respond to you. " +
-                    "For example: \"Always respond in bullet points\" or \"Explain things like I'm a beginner.\"",
+                        "These instructions will personalize how I respond to you. " +
+                        'For example: "Always respond in bullet points" or "Explain things like I\'m a beginner."',
                     { reply_markup: { force_reply: true } }
                 );
             });
@@ -265,7 +272,7 @@ export const services = {
                     msg.reply_to_message &&
                     "text" in msg.reply_to_message &&
                     msg.reply_to_message.text ===
-                    "Please reply to this message with your valued feedback" &&
+                        "Please reply to this message with your valued feedback" &&
                     msg.reply_to_message.from?.id === ctx.botInfo.id
                 ) {
                     const feedbackText = "text" in msg ? msg.text : null;
@@ -329,7 +336,6 @@ export const services = {
                     return;
                 }
             });
-
         } catch (error) {
             logger.error("Failed to prepare bot", error);
             process.exit(1);
