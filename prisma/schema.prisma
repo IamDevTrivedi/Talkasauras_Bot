@@ -23,6 +23,11 @@ enum MessageRole {
   SYSTEM
 }
 
+enum Role {
+  user
+  assistant
+}
+
 model User {
   telegramIdHash String @id
 
@@ -42,9 +47,9 @@ model Message {
   id             String @id @default(uuid())
   telegramIdHash String
 
-  content Bytes
-  role    Bytes
-  nonce   Bytes
+  content String
+  role    Role
+  nonce   String
 
   isTemporary Boolean @default(false)
   createdAt   BigInt
