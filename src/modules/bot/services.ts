@@ -9,6 +9,7 @@ import { Markup } from "telegraf";
 import { WritingStyle } from "@prisma/client";
 import { MODEL, TEMPORARY_MSG_TIMEOUT } from "@/constants/app.js";
 import { ollama } from "@/config/ollama.js";
+import { buildSystemPrompt } from "@/utils/genPrompt.js";
 
 export const services = {
     prepare: async () => {
@@ -395,9 +396,17 @@ export const services = {
                     content: newMsg,
                 });
 
+                const systemPrompt = buildSystemPrompt(
+                    user.writingStyle,
+                    user.customInstructions
+                );
+
                 const response = await ollama!.chat({
                     model: MODEL,
-                    messages: preMsgsDecrypted,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        ...preMsgsDecrypted,
+                    ],
                 });
 
                 const AIReply = response.message.content;
