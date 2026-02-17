@@ -4,12 +4,13 @@ import { prisma } from "@/db/prisma.js";
 import { redisClient } from "@/db/redis.js";
 import { decrypt, encrypt, generateBytes, generateKey, HMAC } from "@/utils/crypto.js";
 import { logger } from "@/utils/logger.js";
-import { lastActivityQueue, QueueNames } from "../queue/index.js";
+import { lastActivityQueue, reminderQueue, QueueNames } from "../queue/index.js";
 import { Markup } from "telegraf";
 import { WritingStyle } from "@prisma/client";
 import { MODEL, TEMPORARY_MSG_TIMEOUT } from "@/constants/app.js";
 import { ollama } from "@/config/ollama.js";
 import { buildSystemPrompt } from "@/utils/genPrompt.js";
+import * as chrono from "chrono-node";
 
 export const services = {
     prepare: async () => {
@@ -29,7 +30,7 @@ export const services = {
                 });
 
                 ctx.state.telegramIdHash = telegramIdHash;
-                ctx.sendChatAction('typing');
+                ctx.sendChatAction("typing");
                 await next();
             });
 
@@ -99,7 +100,7 @@ export const services = {
 
             bot.command("help", (ctx) => {
                 ctx.reply(
-                    `Available Commands\n\n/start — Start the bot & get a welcome message\n/about — Learn more about Talkasauras Bot\n/help — Show this list of commands\n/contact — Developer's contact details\n/feedback — Share your feedback with us\n\nOr just send me any message and I'll chat with you!`
+                    `Available Commands\n\n/start — Start the bot & get a welcome message\n/about — Learn more about Talkasauras Bot\n/help — Show this list of commands\n/contact — Developer's contact details\n/feedback — Share your feedback with us\n/remindme — Set a reminder for a future date & time\n\nOr just send me any message and I'll chat with you!`
                 );
             });
 
@@ -141,9 +142,9 @@ export const services = {
 
                     await ctx.reply(
                         `Your current bot is set to: ${user!.temporaryOn ? "Temporary Mode" : "Default Mode"}\n\n` +
-                        `To change the current mode:\n` +
-                        `/temporary_off - Switch back to Default Mode\n` +
-                        `/temporary_on - Switch to Temporary Mode (resets after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity)`
+                            `To change the current mode:\n` +
+                            `/temporary_off - Switch back to Default Mode\n` +
+                            `/temporary_on - Switch to Temporary Mode (resets after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity)`
                     );
                 } catch (error) {
                     logger.error("Failed to fetch user for current_mode command", error);
@@ -164,8 +165,8 @@ export const services = {
                     });
                     await ctx.reply(
                         "Temporary Mode is now ON.\n\n" +
-                        `New messages will be marked as temporary and automatically deleted when you switch back to Default Mode or ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity.\n\n` +
-                        "Use /temporary_off to switch back."
+                            `New messages will be marked as temporary and automatically deleted when you switch back to Default Mode or ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity.\n\n` +
+                            "Use /temporary_off to switch back."
                     );
                 } catch (error) {
                     logger.error("Failed to enable temporary mode", error);
@@ -193,8 +194,8 @@ export const services = {
 
                     await ctx.reply(
                         "Temporary Mode is now OFF.\n\n" +
-                        "All temporary messages have been deleted. You are now back to Default Mode.\n\n" +
-                        "Use /temporary_on to switch to Temporary Mode again."
+                            "All temporary messages have been deleted. You are now back to Default Mode.\n\n" +
+                            "Use /temporary_on to switch to Temporary Mode again."
                     );
                 } catch (error) {
                     logger.error("Failed to disable temporary mode", error);
@@ -204,11 +205,19 @@ export const services = {
                 }
             });
 
+            bot.command("remindme", async (ctx) => {
+                ctx.reply(
+                    "Please reply to this message with the date and time for your reminder.\n\n" +
+                        'For example: "tomorrow at 3pm", "March 5 at 10:00", or "in 2 hours".',
+                    { reply_markup: { force_reply: true } }
+                );
+            });
+
             bot.command("custom_instructions", async (ctx) => {
                 ctx.reply(
                     "Please reply to this message with your custom instructions for the bot.\n\n" +
-                    "These instructions will personalize how I respond to you. " +
-                    'For example: "Always respond in bullet points" or "Explain things like I\'m a beginner."',
+                        "These instructions will personalize how I respond to you. " +
+                        'For example: "Always respond in bullet points" or "Explain things like I\'m a beginner."',
                     { reply_markup: { force_reply: true } }
                 );
             });
@@ -268,8 +277,166 @@ export const services = {
                     "reply_to_message" in msg &&
                     msg.reply_to_message &&
                     "text" in msg.reply_to_message &&
+                    msg.reply_to_message.text?.startsWith(
+                        "Please reply to this message with the date and time for your reminder"
+                    ) &&
+                    msg.reply_to_message.from?.id === ctx.botInfo.id
+                ) {
+                    const dateText = "text" in msg ? msg.text : null;
+                    if (!dateText) {
+                        await ctx.reply("Please send the date and time as a text message.");
+                        return;
+                    }
+
+                    const parsedDate = chrono.parseDate(dateText, new Date(), {
+                        forwardDate: true,
+                    });
+
+                    if (!parsedDate) {
+                        await ctx.reply(
+                            "I couldn't understand that date/time. Please try again with something like " +
+                                '"tomorrow at 3pm" or "March 5 at 10:00".'
+                        );
+                        return;
+                    }
+
+                    if (parsedDate.getTime() <= Date.now()) {
+                        await ctx.reply(
+                            "That time has already passed. Please provide a future date and time."
+                        );
+                        return;
+                    }
+
+                    const formattedDate = parsedDate.toLocaleString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    });
+
+                    await ctx.reply(
+                        "Now, please reply to this message with the note for your reminder.\n\n" +
+                            `📅 Scheduled for: ${parsedDate.toISOString()}`,
+                        { reply_markup: { force_reply: true } }
+                    );
+                    return;
+                }
+                return next();
+            });
+
+            bot.on("message", async (ctx, next) => {
+                const msg = ctx.message;
+                if (
+                    "reply_to_message" in msg &&
+                    msg.reply_to_message &&
+                    "text" in msg.reply_to_message &&
+                    msg.reply_to_message.text?.startsWith(
+                        "Now, please reply to this message with the note for your reminder"
+                    ) &&
+                    msg.reply_to_message.from?.id === ctx.botInfo.id
+                ) {
+                    const noteText = "text" in msg ? msg.text : null;
+                    if (!noteText) {
+                        await ctx.reply("Please send your reminder note as a text message.");
+                        return;
+                    }
+
+                    const replyText = msg.reply_to_message.text!;
+                    const isoMatch = replyText.match(/📅 Scheduled for: (.+)$/);
+                    if (!isoMatch) {
+                        await ctx.reply("Something went wrong. Please start over with /remindme.");
+                        return;
+                    }
+
+                    const scheduledDate = new Date(isoMatch[1]);
+                    if (isNaN(scheduledDate.getTime())) {
+                        await ctx.reply("Something went wrong. Please start over with /remindme.");
+                        return;
+                    }
+
+                    const delay = scheduledDate.getTime() - Date.now();
+                    if (delay <= 0) {
+                        await ctx.reply(
+                            "That time has already passed. Please start over with /remindme."
+                        );
+                        return;
+                    }
+
+                    const { id } = ctx.from!;
+
+                    const encryptionKey = generateKey({
+                        secretKey: env.KEYS.SECRET_KEY_2[env.KEYS.VERSION],
+                        masterKey: "reminder",
+                    });
+
+                    const telegramIdNonce = generateBytes({ length: 16 });
+                    const messageNonce = generateBytes({ length: 16 });
+
+                    const encryptedTelegramId = encrypt({
+                        data: id.toString(),
+                        key: encryptionKey,
+                        nonce: telegramIdNonce,
+                    });
+
+                    const encryptedMessage = encrypt({
+                        data: noteText,
+                        key: encryptionKey,
+                        nonce: messageNonce,
+                    });
+
+                    const telegramIdHash = ctx.state.telegramIdHash as string;
+
+                    try {
+                        const reminder = await prisma.reminder.create({
+                            data: {
+                                telegramId: encryptedTelegramId,
+                                telegramIdNonce,
+                                telegramIdHash,
+                                message: encryptedMessage,
+                                messageNonce,
+                                keyVersion: env.KEYS.VERSION,
+                                remindAt: BigInt(scheduledDate.getTime()),
+                                createdAt: BigInt(Date.now()),
+                            },
+                        });
+
+                        await reminderQueue.add(
+                            QueueNames.SEND_REMINDER,
+                            { reminderId: reminder.id },
+                            { delay }
+                        );
+
+                        const formattedDate = scheduledDate.toLocaleString("en-US", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        });
+
+                        await ctx.reply(`✅ Reminder set!\n\n📅 ${formattedDate}\n📝 ${noteText}`);
+                    } catch (error) {
+                        logger.error("Failed to create reminder", error);
+                        await ctx.reply(
+                            "Sorry, something went wrong while setting your reminder. Please try again later."
+                        );
+                    }
+                    return;
+                }
+                return next();
+            });
+
+            bot.on("message", async (ctx, next) => {
+                const msg = ctx.message;
+                if (
+                    "reply_to_message" in msg &&
+                    msg.reply_to_message &&
+                    "text" in msg.reply_to_message &&
                     msg.reply_to_message.text ===
-                    "Please reply to this message with your valued feedback" &&
+                        "Please reply to this message with your valued feedback" &&
                     msg.reply_to_message.from?.id === ctx.botInfo.id
                 ) {
                     const feedbackText = "text" in msg ? msg.text : null;
@@ -396,17 +563,11 @@ export const services = {
                     content: newMsg,
                 });
 
-                const systemPrompt = buildSystemPrompt(
-                    user.writingStyle,
-                    user.customInstructions
-                );
+                const systemPrompt = buildSystemPrompt(user.writingStyle, user.customInstructions);
 
                 const response = await ollama!.chat({
                     model: MODEL,
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        ...preMsgsDecrypted,
-                    ],
+                    messages: [{ role: "system", content: systemPrompt }, ...preMsgsDecrypted],
                 });
 
                 const AIReply = response.message.content;
