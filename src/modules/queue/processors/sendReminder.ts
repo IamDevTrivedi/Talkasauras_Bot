@@ -1,7 +1,7 @@
 import { bot } from "@/config/bot.js";
 import { env } from "@/config/env.js";
 import { prisma } from "@/db/prisma.js";
-import { decrypt, generateKey } from "@/utils/crypto.js";
+import { decrypt } from "@/utils/crypto.js";
 import { logger } from "@/utils/logger.js";
 import { Job } from "bullmq";
 
@@ -25,21 +25,14 @@ export const sendReminder = async (job: Job<SendReminderJobData>) => {
             return;
         }
 
-        const encryptionKey = generateKey({
-            secretKey: env.KEYS.SECRET_KEY_2[reminder.keyVersion],
-            masterKey: "reminder",
-        });
-
         const telegramId = decrypt({
-            data: reminder.telegramId,
-            nonce: reminder.telegramIdNonce,
-            key: encryptionKey,
+            data: reminder.telegramIdEnc,
+            key: env.KEYS.SECRET_KEY_2[reminder.keyVersion],
         });
 
         const message = decrypt({
             data: reminder.message,
-            nonce: reminder.messageNonce,
-            key: encryptionKey,
+            key: env.KEYS.SECRET_KEY_2[reminder.keyVersion],
         });
 
         await bot.telegram.sendMessage(

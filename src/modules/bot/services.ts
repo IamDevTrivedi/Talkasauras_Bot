@@ -2,7 +2,7 @@ import { bot } from "@/config/bot.js";
 import { env } from "@/config/env.js";
 import { prisma } from "@/db/prisma.js";
 import { redisClient } from "@/db/redis.js";
-import { decrypt, encrypt, generateBytes, generateKey, HMAC } from "@/utils/crypto.js";
+import { decrypt, encrypt, HMAC } from "@/utils/crypto.js";
 import { logger } from "@/utils/logger.js";
 import { lastActivityQueue, reminderQueue, QueueNames } from "../queue/index.js";
 import { Markup } from "telegraf";
@@ -15,6 +15,8 @@ import * as chrono from "chrono-node";
 export const services = {
     prepare: async () => {
         try {
+
+            // Middleware to identify user and set telegramIdHash in context state
             bot.use(async (ctx, next) => {
                 const { id } = ctx.from!;
                 if (!id) {
@@ -34,6 +36,8 @@ export const services = {
                 await next();
             });
 
+
+            // Middleware to create user in the DB
             bot.use(async (ctx, next) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
 
@@ -68,23 +72,8 @@ export const services = {
                 await next();
             });
 
-            bot.use(async (ctx, next) => {
-                try {
-                    await prisma.user.count({
-                        where: {
-                            telegramIdHash: ctx.state.telegramIdHash,
-                        },
-                    });
 
-                    return await next();
-                } catch (error) {
-                    logger.error("Error in message handling", error);
-                    await ctx.reply(
-                        "Sorry, something went wrong while processing your message. Please try again later."
-                    );
-                }
-            });
-
+            // /start: 
             bot.start((ctx) => {
                 const name = ctx.from?.first_name || "there";
                 ctx.reply(
@@ -95,6 +84,8 @@ export const services = {
                 );
             });
 
+
+            // /about: 
             bot.command("about", (ctx) => {
                 ctx.reply(
                     `About Talkasauras Bot\n` +
@@ -106,6 +97,8 @@ export const services = {
                 );
             });
 
+
+            // /help:
             bot.command("help", (ctx) => {
                 ctx.reply(
                     `Available Commands\n` +
@@ -126,6 +119,8 @@ export const services = {
                 );
             });
 
+
+            // /contact:
             bot.command("contact", (ctx) => {
                 ctx.reply(
                     `Developer Contact Information\n` +
@@ -137,6 +132,8 @@ export const services = {
                 );
             });
 
+
+            // /feedback:
             bot.command("feedback", (ctx) => {
                 ctx.reply(
                     "Your feedback matters to us and helps improve the bot.\n\n" +
@@ -145,6 +142,8 @@ export const services = {
                 );
             });
 
+
+            // /clear:
             bot.command("clear", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
 
@@ -161,6 +160,8 @@ export const services = {
                 }
             });
 
+
+            // /current_mode: 
             bot.command("current_mode", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
 
@@ -187,6 +188,8 @@ export const services = {
                 }
             });
 
+
+            // /temporary_on:
             bot.command("temporary_on", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
 
@@ -210,6 +213,8 @@ export const services = {
                 }
             });
 
+
+            // /temporary_off:
             bot.command("temporary_off", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
 
@@ -240,6 +245,8 @@ export const services = {
                 }
             });
 
+
+            // /remindme:
             bot.command("remindme", async (ctx) => {
                 ctx.reply(
                     "Let's set up a reminder for you.\n\n" +
@@ -253,6 +260,8 @@ export const services = {
                 );
             });
 
+
+            // /custom_instructions:
             bot.command("custom_instructions", async (ctx) => {
                 ctx.reply(
                     "Custom Instructions\n" +
@@ -267,6 +276,8 @@ export const services = {
                 );
             });
 
+
+            // /writing_style:
             bot.command("writing_style", async (ctx) => {
                 await ctx.reply(
                     "Choose your preferred writing style:",
@@ -279,6 +290,7 @@ export const services = {
                 );
             });
 
+
             const writingStyleLabels: Record<WritingStyle, string> = {
                 DEFAULT: "Default",
                 FORMAL: "Formal",
@@ -286,6 +298,8 @@ export const services = {
                 CONCISE: "Concise",
             };
 
+
+            // Callback handler for writing style selection
             bot.action(/^ws:(.+)$/, async (ctx) => {
                 const style = ctx.match[1] as WritingStyle;
 
@@ -294,11 +308,7 @@ export const services = {
                     return;
                 }
 
-                const { id } = ctx.from!;
-                const telegramIdHash = HMAC({
-                    data: id.toString(),
-                    key: env.KEYS.SECRET_KEY_1[env.KEYS.VERSION],
-                });
+                const telegramIdHash = ctx.state.telegramIdHash as string;
 
                 try {
                     await prisma.user.update({
@@ -316,13 +326,15 @@ export const services = {
                 }
             });
 
+
+            // Parsing replies for reminder setup and custom instructions: Part 1
             bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
                 if (
                     "reply_to_message" in msg &&
                     msg.reply_to_message &&
                     "text" in msg.reply_to_message &&
-                    msg.reply_to_message.text?.startsWith(
+                    msg.reply_to_message.text?.includes(
                         "Please reply to this message with the date and time for your reminder"
                     ) &&
                     msg.reply_to_message.from?.id === ctx.botInfo.id
@@ -372,17 +384,20 @@ export const services = {
                 return next();
             });
 
+
+            // Parsing replies for reminder setup and custom instructions: Part 2
             bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
                 if (
                     "reply_to_message" in msg &&
                     msg.reply_to_message &&
                     "text" in msg.reply_to_message &&
-                    msg.reply_to_message.text?.startsWith(
-                        "Now, please reply to this message with the note for your reminder"
+                    msg.reply_to_message.text?.includes(
+                        "Now, please reply to this message with the note for your reminder."
                     ) &&
                     msg.reply_to_message.from?.id === ctx.botInfo.id
                 ) {
+
                     const noteText = "text" in msg ? msg.text : null;
                     if (!noteText) {
                         await ctx.reply("Please send your reminder note as a text message.");
@@ -412,36 +427,21 @@ export const services = {
 
                     const { id } = ctx.from!;
 
-                    const encryptionKey = generateKey({
-                        secretKey: env.KEYS.SECRET_KEY_2[env.KEYS.VERSION],
-                        masterKey: "reminder",
-                    });
-
-                    const telegramIdNonce = generateBytes({ length: 16 });
-                    const messageNonce = generateBytes({ length: 16 });
-
-                    const encryptedTelegramId = encrypt({
+                    const telegramIdEnc = encrypt({
+                        key: env.KEYS.SECRET_KEY_2[env.KEYS.VERSION],
                         data: id.toString(),
-                        key: encryptionKey,
-                        nonce: telegramIdNonce,
                     });
 
                     const encryptedMessage = encrypt({
+                        key: env.KEYS.SECRET_KEY_2[env.KEYS.VERSION],
                         data: noteText,
-                        key: encryptionKey,
-                        nonce: messageNonce,
                     });
-
-                    const telegramIdHash = ctx.state.telegramIdHash as string;
 
                     try {
                         const reminder = await prisma.reminder.create({
                             data: {
-                                telegramId: encryptedTelegramId,
-                                telegramIdNonce,
-                                telegramIdHash,
+                                telegramIdEnc: telegramIdEnc,
                                 message: encryptedMessage,
-                                messageNonce,
                                 keyVersion: env.KEYS.VERSION,
                                 remindAt: BigInt(scheduledDate.getTime()),
                                 createdAt: BigInt(Date.now()),
@@ -481,6 +481,8 @@ export const services = {
                 return next();
             });
 
+
+            // Parsing replies for feedback:
             bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
                 if (
@@ -518,14 +520,16 @@ export const services = {
                 return next();
             });
 
+
+            // Parsing replies for custom instructions:
             bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
                 if (
                     "reply_to_message" in msg &&
                     msg.reply_to_message &&
                     "text" in msg.reply_to_message &&
-                    msg.reply_to_message.text?.startsWith(
-                        "Please reply to this message with your custom instructions"
+                    msg.reply_to_message.text?.includes(
+                        "You can personalize how I respond to you by providing your own instructions."
                     ) &&
                     msg.reply_to_message.from?.id === ctx.botInfo.id
                 ) {
@@ -556,22 +560,10 @@ export const services = {
                 return await next();
             });
 
+
+            // Main message handler for chatting with the bot
             bot.on("text", async (ctx) => {
-                const { id } = ctx.from!;
                 const telegramIdHash = ctx.state.telegramIdHash as string;
-
-                const nonce1 = generateBytes({
-                    length: 16,
-                });
-
-                const nonce2 = generateBytes({
-                    length: 16,
-                });
-
-                const encryptionKey = generateKey({
-                    secretKey: env.KEYS.SECRET_KEY_2[env.KEYS.VERSION],
-                    masterKey: String(id),
-                });
 
                 const { text: newMsg } = ctx.message;
 
@@ -601,7 +593,6 @@ export const services = {
                     select: {
                         role: true,
                         content: true,
-                        nonce: true,
                     },
                 });
 
@@ -610,8 +601,7 @@ export const services = {
                         role: msg.role,
                         content: decrypt({
                             data: msg.content,
-                            nonce: msg.nonce,
-                            key: encryptionKey,
+                            key: env.KEYS.SECRET_KEY_2[user.keyVersion],
                         }),
                     };
                 });
@@ -633,36 +623,30 @@ export const services = {
                 type Part = {
                     role: "user" | "assistant";
                     content: string;
-                    nonce: string;
                 };
 
                 const userPart: Part = {
                     role: "user",
-                    nonce: nonce1,
                     content: encrypt({
                         data: newMsg,
-                        key: encryptionKey,
-                        nonce: nonce1,
+                        key: env.KEYS.SECRET_KEY_2[user.keyVersion],
                     }),
                 };
 
                 const AIPart: Part = {
                     role: "assistant",
-                    nonce: nonce2,
                     content: encrypt({
                         data: AIReply,
-                        key: encryptionKey,
-                        nonce: nonce2,
+                        key: env.KEYS.SECRET_KEY_2[user.keyVersion],
                     }),
                 };
 
                 await prisma.message.create({
                     data: {
-                        content: userPart.content,
-                        createdAt: BigInt(Date.now()),
-                        nonce: userPart.nonce,
-                        role: userPart.role,
                         telegramIdHash,
+                        content: userPart.content,
+                        role: userPart.role,
+                        createdAt: BigInt(Date.now()),
                         isTemporary: isActualTemporary,
                     },
                 });
@@ -671,7 +655,6 @@ export const services = {
                     data: {
                         content: AIPart.content,
                         createdAt: BigInt(Date.now()),
-                        nonce: AIPart.nonce,
                         role: AIPart.role,
                         telegramIdHash,
                         isTemporary: isActualTemporary,

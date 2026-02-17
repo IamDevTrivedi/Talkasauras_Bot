@@ -11,69 +11,39 @@ export const HMAC = (options: HMACOptions) => {
     return hmac.digest("hex");
 };
 
-export interface GenerateBytes {
-    length: number;
-}
-
-export const generateBytes = (options: GenerateBytes) => {
-    return crypto.randomBytes(options.length).toString("hex");
-};
-
-export interface KeyGenOptions {
-    masterKey: string;
-    secretKey: string;
-}
-
-export const generateKey = (options: KeyGenOptions) => {
-    const hmacResult = HMAC({
-        data: options.masterKey,
-        key: options.secretKey,
-    });
-
-    const derivedKey = crypto.hkdfSync(
-        "sha256",
-        Buffer.from(hmacResult, "hex"),
-        Buffer.alloc(0),
-        Buffer.alloc(0),
-        32
-    );
-
-    return Buffer.from(derivedKey).toString("hex");
-};
-
 export interface EncryptOptions {
     key: string;
     data: string;
-    nonce: string;
 }
 
-export const encrypt = (options: EncryptOptions) => {
-    const cipher = crypto.createCipheriv(
-        "aes-256-gcm",
-        Buffer.from(options.key, "hex"),
-        Buffer.from(options.nonce, "hex")
-    );
-    let encrypted = cipher.update(options.data, "utf8", "hex");
-    encrypted += cipher.final("hex");
-    const tag = cipher.getAuthTag().toString("hex");
-    return `${encrypted}:${tag}`;
+export const encrypt = (options: EncryptOptions): string => {
+    const iv = crypto.randomBytes(12);
+    const key = crypto.createHash("sha256").update(options.key).digest();
+    const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+    const encrypted = Buffer.concat([
+        cipher.update(options.data, "utf8"),
+        cipher.final()
+    ]);
+    const tag = cipher.getAuthTag();
+    return Buffer.concat([iv, tag, encrypted]).toString("base64");
 };
 
 export interface DecryptOptions {
     key: string;
     data: string;
-    nonce: string;
 }
 
-export const decrypt = (options: DecryptOptions) => {
-    const [encryptedData, tag] = options.data.split(":");
-    const decipher = crypto.createDecipheriv(
-        "aes-256-gcm",
-        Buffer.from(options.key, "hex"),
-        Buffer.from(options.nonce, "hex")
-    );
-    decipher.setAuthTag(Buffer.from(tag, "hex"));
-    let decrypted = decipher.update(encryptedData, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
+export const decrypt = (options: DecryptOptions): string => {
+    const buffer = Buffer.from(options.data, "base64");
+    const iv = buffer.subarray(0, 12);
+    const tag = buffer.subarray(12, 28);
+    const encrypted = buffer.subarray(28);
+    const key = crypto.createHash("sha256").update(options.key).digest();
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+    decipher.setAuthTag(tag);
+    const decrypted = Buffer.concat([
+        decipher.update(encrypted),
+        decipher.final()
+    ]);
+    return decrypted.toString("utf8");
 };

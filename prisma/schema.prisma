@@ -49,7 +49,6 @@ model Message {
 
   content String
   role    Role
-  nonce   String
 
   isTemporary Boolean @default(false)
   createdAt   BigInt
@@ -65,16 +64,12 @@ model Feedback {
 model Reminder {
   id Int @id @default(autoincrement())
 
-  telegramId      String
-  telegramIdNonce String
-  telegramIdHash  String
+  telegramIdEnc String
+  keyVersion    Int
 
-  message      String
-  messageNonce String
+  message  String
+  remindAt BigInt
+  executed Boolean @default(false)
 
-  keyVersion Int
-
-  remindAt  BigInt
-  executed  Boolean @default(false)
   createdAt BigInt
 }
