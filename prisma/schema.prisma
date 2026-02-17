@@ -37,7 +37,7 @@ model User {
 
   temporaryOn Boolean @default(false)
 
-  keyVersion Int @default(1)
+  keyVersion Int @default(0)
 
   createdAt  BigInt
   lastActive BigInt
