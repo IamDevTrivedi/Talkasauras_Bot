@@ -2,7 +2,7 @@ import { bot } from "@/config/bot.js";
 import { env } from "@/config/env.js";
 import { prisma } from "@/db/prisma.js";
 import { redisClient } from "@/db/redis.js";
-import { HMAC } from "@/utils/hash.js";
+import { HMAC } from "@/utils/crypto.js";
 import { logger } from "@/utils/logger.js";
 import { lastActivityQueue, QueueNames } from "../queue/index.js";
 import { Markup } from "telegraf";
