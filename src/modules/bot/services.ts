@@ -25,7 +25,7 @@ export const services = {
 
                 const telegramIdHash = HMAC({
                     data: id.toString(),
-                    key: env.KEYS.SECRET_KEY_1,
+                    key: env.KEYS.SECRET_KEY_1[env.KEYS.VERSION],
                 });
 
                 ctx.state.telegramIdHash = telegramIdHash;
@@ -243,7 +243,7 @@ export const services = {
                 const { id } = ctx.from!;
                 const telegramIdHash = HMAC({
                     data: id.toString(),
-                    key: env.KEYS.SECRET_KEY_1,
+                    key: env.KEYS.SECRET_KEY_1[env.KEYS.VERSION],
                 });
 
                 try {
@@ -344,7 +344,7 @@ export const services = {
                 });
 
                 const encryptionKey = generateKey({
-                    secretKey: env.KEYS.SECRET_KEY_2,
+                    secretKey: env.KEYS.SECRET_KEY_2[env.KEYS.VERSION],
                     masterKey: String(id),
                 });
 

@@ -33,10 +33,26 @@ const envSchema = z
         }),
 
         KEYS: z.object({
-            SECRET_KEY_1: z.string().min(32),
-            SECRET_KEY_2: z.string().min(32),
-            VERSION: z.int().min(0),
-        }),
+            SECRET_KEY_1: z.array(z.string().min(32)),
+            SECRET_KEY_2: z.array(z.string().min(32)),
+            VERSION: z.number().int().min(0),
+        }).superRefine((data, ctx) => {
+            if (data.SECRET_KEY_1.length !== data.SECRET_KEY_2.length) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "SECRET_KEY_1 and SECRET_KEY_2 must have the same length",
+                    path: ["SECRET_KEY_2"]
+                });
+            }
+
+            if (data.VERSION >= data.SECRET_KEY_1.length) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "VERSION must be less than the number of keys",
+                    path: ["VERSION"]
+                });
+            }
+        })
     })
     .strict();
 
