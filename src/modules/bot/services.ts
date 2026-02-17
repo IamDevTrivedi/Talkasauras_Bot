@@ -7,7 +7,8 @@ import { logger } from "@/utils/logger.js";
 import { lastActivityQueue, QueueNames } from "../queue/index.js";
 import { Markup } from "telegraf";
 import { WritingStyle } from "@prisma/client";
-import { TEMPORARY_MSG_TIMEOUT } from "@/constants/app.js";
+import { MODEL, TEMPORARY_MSG_TIMEOUT } from "@/constants/app.js";
+import { ollama } from "@/config/ollama.js";
 
 export const services = {
     prepare: async () => {
@@ -27,6 +28,7 @@ export const services = {
                 });
 
                 ctx.state.telegramIdHash = telegramIdHash;
+                ctx.sendChatAction('typing');
                 await next();
             });
 
@@ -393,8 +395,12 @@ export const services = {
                     content: newMsg,
                 });
 
-                // MOCK
-                const AIReply = "this is a fucking AI";
+                const response = await ollama!.chat({
+                    model: MODEL,
+                    messages: preMsgsDecrypted,
+                });
+
+                const AIReply = response.message.content;
 
                 type Part = {
                     role: "user" | "assistant";
@@ -443,6 +449,8 @@ export const services = {
                         isTemporary: isActualTemporary,
                     },
                 });
+
+                await ctx.reply(AIReply);
             });
         } catch (error) {
             logger.error("Failed to prepare bot", error);
