@@ -2,7 +2,7 @@ import { bot } from "@/config/bot.js";
 import { env } from "@/config/env.js";
 import { prisma } from "@/db/prisma.js";
 import { redisClient } from "@/db/redis.js";
-import { HMAC } from "@/utils/crypto.js";
+import { generateBytes, generateKey, HMAC } from '@/utils/crypto.js';
 import { logger } from "@/utils/logger.js";
 import { lastActivityQueue, QueueNames } from "../queue/index.js";
 import { Markup } from "telegraf";
@@ -11,10 +11,9 @@ import { WritingStyle } from "@prisma/client";
 export const services = {
     prepare: async () => {
         try {
-            // Middleware to track user activity and manage user records
-            bot.use(async (ctx, next) => {
-                const { id } = ctx.from || {};
 
+            bot.use(async (ctx, next) => {
+                const { id } = ctx.from!;
                 if (!id) {
                     await ctx.reply(
                         "Sorry, I couldn't identify you. Please make sure your Telegram account is properly set up"
@@ -26,6 +25,26 @@ export const services = {
                     data: id.toString(),
                     key: env.KEYS.SECRET_KEY_1,
                 });
+
+                const nonce = generateBytes({
+                    length: 16,
+                });
+
+                const encryptionKey = generateKey({
+                    masterKey: String(id),
+                    secretKey: env.KEYS.SECRET_KEY_2,
+                })
+
+                ctx.state.telegramIdHash = telegramIdHash;
+                ctx.state.nonce = nonce;
+                ctx.state.encryptionKey = encryptionKey;
+
+                await next();
+            });
+
+
+            bot.use(async (ctx, next) => {
+                const telegramIdHash = ctx.state.telegramIdHash as string;
 
                 const exists = await redisClient.exists(`user:${telegramIdHash}`);
 
@@ -58,7 +77,28 @@ export const services = {
                 await next();
             });
 
-            // /start: Welcome message handler
+
+            bot.use(async (ctx, next) => {
+                try {
+
+                    const c = await prisma.user.count({
+                        where: {
+                            telegramIdHash: ctx.state.telegramIdHash,
+                        }
+                    });
+
+                    console.log(c);
+                    return await next();
+
+                } catch (error) {
+                    logger.error("Error in message handling", error);
+                    await ctx.reply(
+                        "Sorry, something went wrong while processing your message. Please try again later."
+                    );
+                }
+            });
+
+
             bot.start((ctx) => {
                 const name = ctx.from?.first_name || "there";
                 ctx.reply(
@@ -66,41 +106,37 @@ export const services = {
                 );
             });
 
-            // /about: Bot information handler
+
             bot.command("about", (ctx) => {
                 ctx.reply(
                     `Talkasauras Bot\n\nAn AI-powered Telegram bot that lets you have natural conversations. Built with love by Dev Trivedi.`
                 );
             });
 
-            // /help: List of available commands handler
+
             bot.command("help", (ctx) => {
                 ctx.reply(
                     `Available Commands\n\n/start — Start the bot & get a welcome message\n/about — Learn more about Talkasauras Bot\n/help — Show this list of commands\n/contact — Developer's contact details\n/feedback — Share your feedback with us\n\nOr just send me any message and I'll chat with you!`
                 );
             });
 
-            // /contact: Developer contact information handler
+
             bot.command("contact", (ctx) => {
                 ctx.reply(
                     `Developer: Dev Trivedi\n\nGitHub: https://github.com/IamDevTrivedi/\nLinkedIn: https://www.linkedin.com/in/contact-devtrivedi/\nPortfolio: https://www.dev-trivedi.me/`
                 );
             });
 
-            // /feedback: Collect user feedback handler
+
             bot.command("feedback", (ctx) => {
                 ctx.reply("Please reply to this message with your valued feedback", {
                     reply_markup: { force_reply: true },
                 });
             });
 
-            // /clear: Clear conversation history handler
+
             bot.command("clear", async (ctx) => {
-                const { id } = ctx.from!;
-                const telegramIdHash = HMAC({
-                    data: id.toString(),
-                    key: env.KEYS.SECRET_KEY_1,
-                });
+                const telegramIdHash = ctx.state.telegramIdHash as string;
 
                 try {
                     await prisma.message.deleteMany({
@@ -115,13 +151,9 @@ export const services = {
                 }
             });
 
-            // /current_mode: Show current bot mode handler
+
             bot.command("current_mode", async (ctx) => {
-                const { id } = ctx.from!;
-                const telegramIdHash = HMAC({
-                    data: id.toString(),
-                    key: env.KEYS.SECRET_KEY_1,
-                });
+                const telegramIdHash = ctx.state.telegramIdHash as string;
 
                 try {
                     const user = await prisma.user.findUnique({
@@ -130,9 +162,9 @@ export const services = {
 
                     await ctx.reply(
                         `Your current bot is set to: ${user!.temporaryOn ? "Temporary Mode" : "Default Mode"}\n\n` +
-                            `To change the current mode:\n` +
-                            `/temporary_off - Switch back to Default Mode\n` +
-                            `/temporary_on - Switch to Temporary Mode (resets after 10 minutes of inactivity)`
+                        `To change the current mode:\n` +
+                        `/temporary_off - Switch back to Default Mode\n` +
+                        `/temporary_on - Switch to Temporary Mode (resets after 10 minutes of inactivity)`
                     );
                 } catch (error) {
                     logger.error("Failed to fetch user for current_mode command", error);
@@ -143,13 +175,9 @@ export const services = {
                 }
             });
 
-            // /temporary_on: Enable temporary mode handler
+
             bot.command("temporary_on", async (ctx) => {
-                const { id } = ctx.from!;
-                const telegramIdHash = HMAC({
-                    data: id.toString(),
-                    key: env.KEYS.SECRET_KEY_1,
-                });
+                const telegramIdHash = ctx.state.telegramIdHash as string;
 
                 try {
                     await prisma.user.update({
@@ -158,8 +186,8 @@ export const services = {
                     });
                     await ctx.reply(
                         "Temporary Mode is now ON.\n\n" +
-                            "New messages will be marked as temporary and automatically deleted when you switch back to Default Mode or 10 minutes of inactivity.\n\n" +
-                            "Use /temporary_off to switch back."
+                        "New messages will be marked as temporary and automatically deleted when you switch back to Default Mode or 10 minutes of inactivity.\n\n" +
+                        "Use /temporary_off to switch back."
                     );
                 } catch (error) {
                     logger.error("Failed to enable temporary mode", error);
@@ -169,13 +197,9 @@ export const services = {
                 }
             });
 
-            // /temporary_off: Disable temporary mode and delete temporary messages handler
+
             bot.command("temporary_off", async (ctx) => {
-                const { id } = ctx.from!;
-                const telegramIdHash = HMAC({
-                    data: id.toString(),
-                    key: env.KEYS.SECRET_KEY_1,
-                });
+                const telegramIdHash = ctx.state.telegramIdHash as string;
 
                 try {
                     await prisma.message.deleteMany({
@@ -192,8 +216,8 @@ export const services = {
 
                     await ctx.reply(
                         "Temporary Mode is now OFF.\n\n" +
-                            "All temporary messages have been deleted. You are now back to Default Mode.\n\n" +
-                            "Use /temporary_on to switch to Temporary Mode again."
+                        "All temporary messages have been deleted. You are now back to Default Mode.\n\n" +
+                        "Use /temporary_on to switch to Temporary Mode again."
                     );
                 } catch (error) {
                     logger.error("Failed to disable temporary mode", error);
@@ -203,17 +227,17 @@ export const services = {
                 }
             });
 
-            // /custom_instructions: to have a custom instruction set for the bot handler
+
             bot.command("custom_instructions", async (ctx) => {
                 ctx.reply(
                     "Please reply to this message with your custom instructions for the bot.\n\n" +
-                        "These instructions will personalize how I respond to you. " +
-                        'For example: "Always respond in bullet points" or "Explain things like I\'m a beginner."',
+                    "These instructions will personalize how I respond to you. " +
+                    'For example: "Always respond in bullet points" or "Explain things like I\'m a beginner."',
                     { reply_markup: { force_reply: true } }
                 );
             });
 
-            // /writing_style: to set the writing style of the bot handler
+
             bot.command("writing_style", async (ctx) => {
                 await ctx.reply(
                     "Choose your preferred writing style:",
@@ -226,13 +250,14 @@ export const services = {
                 );
             });
 
-            // Writing style selection action handlers
+
             const writingStyleLabels: Record<WritingStyle, string> = {
                 DEFAULT: "Default",
                 FORMAL: "Formal",
                 DESCRIPTIVE: "Descriptive",
                 CONCISE: "Concise",
             };
+
 
             bot.action(/^ws:(.+)$/, async (ctx) => {
                 const style = ctx.match[1] as WritingStyle;
@@ -264,7 +289,7 @@ export const services = {
                 }
             });
 
-            // Message handler to capture feedback replies
+
             bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
                 if (
@@ -272,7 +297,7 @@ export const services = {
                     msg.reply_to_message &&
                     "text" in msg.reply_to_message &&
                     msg.reply_to_message.text ===
-                        "Please reply to this message with your valued feedback" &&
+                    "Please reply to this message with your valued feedback" &&
                     msg.reply_to_message.from?.id === ctx.botInfo.id
                 ) {
                     const feedbackText = "text" in msg ? msg.text : null;
@@ -299,7 +324,7 @@ export const services = {
                 return next();
             });
 
-            // Message handler to capture /custom_instructions replies
+
             bot.on("message", async (ctx) => {
                 const msg = ctx.message;
                 if (
@@ -317,11 +342,7 @@ export const services = {
                         return;
                     }
 
-                    const { id } = ctx.from!;
-                    const telegramIdHash = HMAC({
-                        data: id.toString(),
-                        key: env.KEYS.SECRET_KEY_1,
-                    });
+                    const telegramIdHash = ctx.state.telegramIdHash as string;
 
                     try {
                         await prisma.user.update({

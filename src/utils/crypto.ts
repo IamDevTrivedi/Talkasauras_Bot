@@ -16,16 +16,29 @@ export interface GenerateBytes {
 }
 
 export const generateBytes = (options: GenerateBytes) => {
-    return crypto.randomBytes(options.length);
+    return crypto.randomBytes(options.length).toString("hex");
 };
 
 export interface KeyGenOptions {
     masterKey: string;
+    secretKey: string;
 }
 
 export const generateKey = (options: KeyGenOptions) => {
-    const key = crypto.createHash("sha256").update(options.masterKey).digest("hex");
-    return key;
+    const hmacResult = HMAC({
+        data: options.masterKey,
+        key: options.secretKey,
+    });
+
+    const derivedKey = crypto.hkdfSync(
+        "sha256",
+        Buffer.from(hmacResult, "hex"),
+        Buffer.alloc(0),
+        Buffer.alloc(0),
+        32
+    );
+
+    return Buffer.from(derivedKey).toString("hex");
 };
 
 export interface EncryptOptions {
