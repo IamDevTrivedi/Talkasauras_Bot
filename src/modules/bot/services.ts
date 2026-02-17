@@ -15,7 +15,6 @@ import * as chrono from "chrono-node";
 export const services = {
     prepare: async () => {
         try {
-
             // Middleware to identify user and set telegramIdHash in context state
             bot.use(async (ctx, next) => {
                 const { id } = ctx.from!;
@@ -35,7 +34,6 @@ export const services = {
                 ctx.sendChatAction("typing");
                 await next();
             });
-
 
             // Middleware to create user in the DB
             bot.use(async (ctx, next) => {
@@ -72,76 +70,70 @@ export const services = {
                 await next();
             });
 
-
-            // /start: 
+            // /start:
             bot.start((ctx) => {
                 const name = ctx.from?.first_name || "there";
                 ctx.reply(
                     `Welcome, ${name}!\n\n` +
-                    `I am Talkasauras Bot, your AI-powered chat companion on Telegram. ` +
-                    `I can carry on natural conversations, remember context, and adapt to your preferred style.\n\n` +
-                    `Feel free to type anything to begin chatting, or send /help to explore all available commands.`
+                        `I am Talkasauras Bot, your AI-powered chat companion on Telegram. ` +
+                        `I can carry on natural conversations, remember context, and adapt to your preferred style.\n\n` +
+                        `Feel free to type anything to begin chatting, or send /help to explore all available commands.`
                 );
             });
 
-
-            // /about: 
+            // /about:
             bot.command("about", (ctx) => {
                 ctx.reply(
                     `About Talkasauras Bot\n` +
-                    `========================\n\n` +
-                    `Talkasauras Bot is an AI-powered Telegram chatbot designed to hold natural, ` +
-                    `meaningful conversations. It supports multiple writing styles, custom instructions, ` +
-                    `temporary chat modes, and scheduled reminders.\n\n` +
-                    `Built with care by Dev Trivedi.`
+                        `========================\n\n` +
+                        `Talkasauras Bot is an AI-powered Telegram chatbot designed to hold natural, ` +
+                        `meaningful conversations. It supports multiple writing styles, custom instructions, ` +
+                        `temporary chat modes, and scheduled reminders.\n\n` +
+                        `Built with care by Dev Trivedi.`
                 );
             });
-
 
             // /help:
             bot.command("help", (ctx) => {
                 ctx.reply(
                     `Available Commands\n` +
-                    `========================\n\n` +
-                    `/start                 -  Start the bot and receive a welcome message\n` +
-                    `/about                 -  Learn more about Talkasauras Bot\n` +
-                    `/help                  -  Display this list of commands\n` +
-                    `/contact               -  View the developer's contact details\n` +
-                    `/feedback              -  Share your valued feedback\n` +
-                    `/remindme              -  Schedule a reminder for a future date and time\n` +
-                    `/clear                 -  Clear your entire conversation history\n` +
-                    `/current_mode          -  Check your current chat mode\n` +
-                    `/temporary_on          -  Enable temporary chat mode\n` +
-                    `/temporary_off         -  Disable temporary mode and delete temp messages\n` +
-                    `/custom_instructions   -  Set personalized instructions for the bot\n` +
-                    `/writing_style         -  Choose your preferred writing style\n\n` +
-                    `You can also simply send me any message and I will respond right away.`
+                        `========================\n\n` +
+                        `/start                 -  Start the bot and receive a welcome message\n` +
+                        `/about                 -  Learn more about Talkasauras Bot\n` +
+                        `/help                  -  Display this list of commands\n` +
+                        `/contact               -  View the developer's contact details\n` +
+                        `/feedback              -  Share your valued feedback\n` +
+                        `/remindme              -  Schedule a reminder for a future date and time\n` +
+                        `/clear                 -  Clear your entire conversation history\n` +
+                        `/current_mode          -  Check your current chat mode\n` +
+                        `/temporary_on          -  Enable temporary chat mode\n` +
+                        `/temporary_off         -  Disable temporary mode and delete temp messages\n` +
+                        `/custom_instructions   -  Set personalized instructions for the bot\n` +
+                        `/writing_style         -  Choose your preferred writing style\n\n` +
+                        `You can also simply send me any message and I will respond right away.`
                 );
             });
-
 
             // /contact:
             bot.command("contact", (ctx) => {
                 ctx.reply(
                     `Developer Contact Information\n` +
-                    `========================\n\n` +
-                    `Name:        Dev Trivedi\n` +
-                    `GitHub:      https://github.com/IamDevTrivedi/\n` +
-                    `LinkedIn:    https://www.linkedin.com/in/contact-devtrivedi/\n` +
-                    `Portfolio:   https://www.dev-trivedi.me/`
+                        `========================\n\n` +
+                        `Name:        Dev Trivedi\n` +
+                        `GitHub:      https://github.com/IamDevTrivedi/\n` +
+                        `LinkedIn:    https://www.linkedin.com/in/contact-devtrivedi/\n` +
+                        `Portfolio:   https://www.dev-trivedi.me/`
                 );
             });
-
 
             // /feedback:
             bot.command("feedback", (ctx) => {
                 ctx.reply(
                     "Your feedback matters to us and helps improve the bot.\n\n" +
-                    "Please reply to this message with your valued feedback.",
+                        "Please reply to this message with your valued feedback.",
                     { reply_markup: { force_reply: true } }
                 );
             });
-
 
             // /clear:
             bot.command("clear", async (ctx) => {
@@ -151,7 +143,9 @@ export const services = {
                     await prisma.message.deleteMany({
                         where: { telegramIdHash },
                     });
-                    await ctx.reply("Done. Your entire conversation history has been cleared successfully.");
+                    await ctx.reply(
+                        "Done. Your entire conversation history has been cleared successfully."
+                    );
                 } catch (error) {
                     logger.error("Failed to clear conversation history", error);
                     await ctx.reply(
@@ -160,8 +154,7 @@ export const services = {
                 }
             });
 
-
-            // /current_mode: 
+            // /current_mode:
             bot.command("current_mode", async (ctx) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
 
@@ -172,12 +165,12 @@ export const services = {
 
                     await ctx.reply(
                         `Current Chat Mode\n` +
-                        `========================\n\n` +
-                        `Active Mode:  ${user!.temporaryOn ? "Temporary" : "Default"}\n\n` +
-                        `Available actions:\n` +
-                        `  /temporary_on   -  Switch to Temporary Mode\n` +
-                        `  /temporary_off  -  Switch back to Default Mode\n\n` +
-                        `Note: Temporary messages are automatically removed after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity or when you switch back to Default Mode.`
+                            `========================\n\n` +
+                            `Active Mode:  ${user!.temporaryOn ? "Temporary" : "Default"}\n\n` +
+                            `Available actions:\n` +
+                            `  /temporary_on   -  Switch to Temporary Mode\n` +
+                            `  /temporary_off  -  Switch back to Default Mode\n\n` +
+                            `Note: Temporary messages are automatically removed after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity or when you switch back to Default Mode.`
                     );
                 } catch (error) {
                     logger.error("Failed to fetch user for current_mode command", error);
@@ -187,7 +180,6 @@ export const services = {
                     return;
                 }
             });
-
 
             // /temporary_on:
             bot.command("temporary_on", async (ctx) => {
@@ -200,10 +192,10 @@ export const services = {
                     });
                     await ctx.reply(
                         "Temporary Mode is now active.\n\n" +
-                        `All new messages from this point forward will be treated as temporary. ` +
-                        `They will be automatically deleted when you switch back to Default Mode ` +
-                        `or after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity.\n\n` +
-                        "To return to Default Mode, use /temporary_off."
+                            `All new messages from this point forward will be treated as temporary. ` +
+                            `They will be automatically deleted when you switch back to Default Mode ` +
+                            `or after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity.\n\n` +
+                            "To return to Default Mode, use /temporary_off."
                     );
                 } catch (error) {
                     logger.error("Failed to enable temporary mode", error);
@@ -212,7 +204,6 @@ export const services = {
                     );
                 }
             });
-
 
             // /temporary_off:
             bot.command("temporary_off", async (ctx) => {
@@ -233,9 +224,9 @@ export const services = {
 
                     await ctx.reply(
                         "Temporary Mode has been deactivated.\n\n" +
-                        "All temporary messages have been permanently deleted and you are now " +
-                        "back in Default Mode. Your future messages will be stored as usual.\n\n" +
-                        "To re-enable Temporary Mode, use /temporary_on."
+                            "All temporary messages have been permanently deleted and you are now " +
+                            "back in Default Mode. Your future messages will be stored as usual.\n\n" +
+                            "To re-enable Temporary Mode, use /temporary_on."
                     );
                 } catch (error) {
                     logger.error("Failed to disable temporary mode", error);
@@ -245,37 +236,34 @@ export const services = {
                 }
             });
 
-
             // /remindme:
             bot.command("remindme", async (ctx) => {
                 ctx.reply(
                     "Let's set up a reminder for you.\n\n" +
-                    "Please reply to this message with the date and time for your reminder.\n\n" +
-                    "Examples of accepted formats:\n" +
-                    "  - tomorrow at 3pm\n" +
-                    "  - March 5 at 10:00\n" +
-                    "  - in 2 hours\n" +
-                    "  - next Friday at noon",
+                        "Please reply to this message with the date and time for your reminder.\n\n" +
+                        "Examples of accepted formats:\n" +
+                        "  - tomorrow at 3pm\n" +
+                        "  - March 5 at 10:00\n" +
+                        "  - in 2 hours\n" +
+                        "  - next Friday at noon",
                     { reply_markup: { force_reply: true } }
                 );
             });
-
 
             // /custom_instructions:
             bot.command("custom_instructions", async (ctx) => {
                 ctx.reply(
                     "Custom Instructions\n" +
-                    "========================\n\n" +
-                    "You can personalize how I respond to you by providing your own instructions.\n\n" +
-                    "Please reply to this message with your custom instructions.\n\n" +
-                    "Examples:\n" +
-                    "  - Always respond in bullet points\n" +
-                    "  - Explain things as if I am a beginner\n" +
-                    "  - Keep answers under 100 words",
+                        "========================\n\n" +
+                        "You can personalize how I respond to you by providing your own instructions.\n\n" +
+                        "Please reply to this message with your custom instructions.\n\n" +
+                        "Examples:\n" +
+                        "  - Always respond in bullet points\n" +
+                        "  - Explain things as if I am a beginner\n" +
+                        "  - Keep answers under 100 words",
                     { reply_markup: { force_reply: true } }
                 );
             });
-
 
             // /writing_style:
             bot.command("writing_style", async (ctx) => {
@@ -290,14 +278,12 @@ export const services = {
                 );
             });
 
-
             const writingStyleLabels: Record<WritingStyle, string> = {
                 DEFAULT: "Default",
                 FORMAL: "Formal",
                 DESCRIPTIVE: "Descriptive",
                 CONCISE: "Concise",
             };
-
 
             // Callback handler for writing style selection
             bot.action(/^ws:(.+)$/, async (ctx) => {
@@ -326,7 +312,6 @@ export const services = {
                 }
             });
 
-
             // Parsing replies for reminder setup and custom instructions: Part 1
             bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
@@ -352,7 +337,7 @@ export const services = {
                     if (!parsedDate) {
                         await ctx.reply(
                             "I couldn't understand that date/time. Please try again with something like " +
-                            '"tomorrow at 3pm" or "March 5 at 10:00".'
+                                '"tomorrow at 3pm" or "March 5 at 10:00".'
                         );
                         return;
                     }
@@ -375,15 +360,14 @@ export const services = {
 
                     await ctx.reply(
                         `Date and time accepted: ${formattedPreview}\n\n` +
-                        "Now, please reply to this message with the note for your reminder.\n\n" +
-                        `Scheduled for: ${parsedDate.toISOString()}`,
+                            "Now, please reply to this message with the note for your reminder.\n\n" +
+                            `Scheduled for: ${parsedDate.toISOString()}`,
                         { reply_markup: { force_reply: true } }
                     );
                     return;
                 }
                 return next();
             });
-
 
             // Parsing replies for reminder setup and custom instructions: Part 2
             bot.on("message", async (ctx, next) => {
@@ -397,7 +381,6 @@ export const services = {
                     ) &&
                     msg.reply_to_message.from?.id === ctx.botInfo.id
                 ) {
-
                     const noteText = "text" in msg ? msg.text : null;
                     if (!noteText) {
                         await ctx.reply("Please send your reminder note as a text message.");
@@ -465,10 +448,10 @@ export const services = {
 
                         await ctx.reply(
                             `Reminder Confirmed\n` +
-                            `========================\n\n` +
-                            `Scheduled:  ${formattedDate}\n` +
-                            `Note:       ${noteText}\n\n` +
-                            `I will send you a message at the scheduled time with your note.`
+                                `========================\n\n` +
+                                `Scheduled:  ${formattedDate}\n` +
+                                `Note:       ${noteText}\n\n` +
+                                `I will send you a message at the scheduled time with your note.`
                         );
                     } catch (error) {
                         logger.error("Failed to create reminder", error);
@@ -480,7 +463,6 @@ export const services = {
                 }
                 return next();
             });
-
 
             // Parsing replies for feedback:
             bot.on("message", async (ctx, next) => {
@@ -520,7 +502,6 @@ export const services = {
                 return next();
             });
 
-
             // Parsing replies for custom instructions:
             bot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
@@ -548,7 +529,7 @@ export const services = {
                         });
                         await ctx.reply(
                             "Your custom instructions have been saved successfully. " +
-                            "All future responses will follow your personalized preferences."
+                                "All future responses will follow your personalized preferences."
                         );
                     } catch (error) {
                         logger.error("Failed to save custom instructions", error);
@@ -559,7 +540,6 @@ export const services = {
 
                 return await next();
             });
-
 
             // Main message handler for chatting with the bot
             bot.on("text", async (ctx) => {
