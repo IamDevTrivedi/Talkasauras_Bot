@@ -42,7 +42,13 @@ export const sendReminder = async (job: Job<SendReminderJobData>) => {
             key: encryptionKey,
         });
 
-        await bot.telegram.sendMessage(telegramId, `⏰ Reminder:\n\n${message}`);
+        await bot.telegram.sendMessage(
+            telegramId,
+            `Reminder Notification\n` +
+            `========================\n\n` +
+            `${message}\n\n` +
+            `This is an automated reminder you scheduled earlier via /remindme.`
+        );
 
         await prisma.reminder.update({
             where: { id: reminder.id },
