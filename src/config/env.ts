@@ -74,6 +74,8 @@ export const env = {
                     process.exit(1);
             }
         })(),
+
+        MODEL_NAME: process.env.OLLAMA_MODEL_NAME as string,
     },
 
     KEYS: {

@@ -1,7 +1,6 @@
 import { WritingStyle } from "@prisma/client";
 
 export const TEMPORARY_MSG_TIMEOUT = 1000 * 60 * 5;
-export const MODEL = "phi3:mini";
 
 export const SYSTEM_PROMPT =
     "You are Talkasauras Bot, a friendly and helpful AI-powered chat companion on Telegram. " +

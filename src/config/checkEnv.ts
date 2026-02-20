@@ -30,6 +30,7 @@ const envSchema = z
                 CLOUD: z.url(),
             }),
             BASE_URL: z.url(),
+            MODEL_NAME: z.string().min(1),
         }),
 
         KEYS: z
@@ -62,7 +63,9 @@ export const checkEnv = () => {
     const result = envSchema.safeParse(env);
 
     if (!result.success) {
-        console.error("Environment variable validation failed:", z.treeifyError(result.error));
+        console.error("Environment variable validation failed:", {
+            error: JSON.stringify(z.treeifyError(result.error)),
+        });
         process.exit(1);
     } else {
         logger.info("Environment variables validated successfully.");
