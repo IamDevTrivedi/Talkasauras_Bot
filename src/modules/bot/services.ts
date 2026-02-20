@@ -30,7 +30,13 @@ export const services = {
                     key: env.KEYS.SECRET_KEY_1[env.KEYS.VERSION],
                 });
 
+                const telegramIdEnc = encrypt({
+                    data: id.toString(),
+                    key: env.KEYS.SECRET_KEY_2[env.KEYS.VERSION],
+                });
+
                 ctx.state.telegramIdHash = telegramIdHash;
+                ctx.state.telegramIdEnc = telegramIdEnc;
                 ctx.sendChatAction("typing");
                 await next();
             });
@@ -38,6 +44,7 @@ export const services = {
             // Middleware to create user in the DB
             bot.use(async (ctx, next) => {
                 const telegramIdHash = ctx.state.telegramIdHash as string;
+                const telegramIdEnc = ctx.state.telegramIdEnc as string;
 
                 const exists = await redisClient.exists(`user:${telegramIdHash}`);
 
@@ -50,10 +57,17 @@ export const services = {
                         await prisma.user.create({
                             data: {
                                 telegramIdHash,
+                                telegramIdEnc,
                                 createdAt: BigInt(Date.now()),
                                 lastActive: BigInt(Date.now()),
                                 keyVersion: env.KEYS.VERSION,
                             },
+                        });
+                    } else if (!existingUser.telegramIdEnc) {
+                        // Backfill telegramIdEnc for existing users
+                        await prisma.user.update({
+                            where: { telegramIdHash },
+                            data: { telegramIdEnc },
                         });
                     }
                 }
@@ -746,16 +760,15 @@ export const services = {
 
                 await ctx.reply(AIReply);
             });
-
         } catch (error) {
             logger.error("Failed to prepare bot", error);
             process.exit(1);
         }
     },
 
-    launch: async () => {
+    launch: () => {
         try {
-            await bot.launch();
+            bot.launch();
         } catch (error) {
             logger.error("Failed to launch bot", error);
             process.exit(1);

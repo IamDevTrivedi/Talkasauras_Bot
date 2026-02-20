@@ -89,4 +89,10 @@ export const env = {
             .map((key) => key.trim()),
         VERSION: Number(process.env.KEYS_VERSION),
     },
+
+    ADMINS: (process.env.ADMINS as string)
+        .split("|")
+        .filter(Boolean)
+        .map((admin) => admin.trim()),
+    TELEGRAM_BOT_TOKEN_INTERNAL: process.env.TELEGRAM_BOT_TOKEN_INTERNAL as string,
 } as const;

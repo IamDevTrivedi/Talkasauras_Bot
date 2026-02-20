@@ -17,12 +17,6 @@ enum Model {
   DEFAULT
 }
 
-enum MessageRole {
-  USER
-  ASSISTANT
-  SYSTEM
-}
-
 enum Role {
   user
   assistant
@@ -30,6 +24,7 @@ enum Role {
 
 model User {
   telegramIdHash String @id
+  telegramIdEnc  String
 
   customInstructions String       @default("")
   writingStyle       WritingStyle @default(DEFAULT)

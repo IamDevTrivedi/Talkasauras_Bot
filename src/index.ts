@@ -6,6 +6,7 @@ import express from "express";
 import { env } from "@/config/env.js";
 import { logger } from "@/utils/logger.js";
 import { services as botService } from "@/modules/bot/services.js";
+import { services as adminServices } from "@/modules/admin/services.js";
 import { connectOllama } from "@/config/ollama.js";
 
 const init = async () => {
@@ -34,8 +35,11 @@ const init = async () => {
         logger.info(`Server is running on port ${env.PORT}`);
     });
 
+
     await botService.prepare();
-    await botService.launch();
+    botService.launch();
+    await adminServices.prepare();
+    adminServices.launch();
 };
 
 init().catch(console.error);

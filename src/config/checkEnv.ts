@@ -56,6 +56,9 @@ const envSchema = z
                     });
                 }
             }),
+
+        ADMINS: z.array(z.string().min(1)),
+        TELEGRAM_BOT_TOKEN_INTERNAL: z.string().min(1),
     })
     .strict();
 

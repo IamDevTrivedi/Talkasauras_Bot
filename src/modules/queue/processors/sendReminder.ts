@@ -48,7 +48,6 @@ export const sendReminder = async (job: Job<SendReminderJobData>) => {
             data: { executed: true },
         });
 
-        logger.info(`Reminder ${reminder.id} sent successfully to user`);
     } catch (error) {
         logger.error(`Error processing reminder ${job.data.reminderId}:`, error);
         throw error;
