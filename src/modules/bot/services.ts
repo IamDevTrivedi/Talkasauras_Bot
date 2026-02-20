@@ -7,7 +7,7 @@ import { logger } from "@/utils/logger.js";
 import { lastActivityQueue, reminderQueue, QueueNames } from "../queue/index.js";
 import { Markup } from "telegraf";
 import { WritingStyle } from "@prisma/client";
-import { MODEL, TEMPORARY_MSG_TIMEOUT } from "@/constants/app.js";
+import { TEMPORARY_MSG_TIMEOUT } from "@/constants/app.js";
 import { ollama } from "@/config/ollama.js";
 import { buildSystemPrompt } from "@/utils/genPrompt.js";
 import * as chrono from "chrono-node";
@@ -75,9 +75,9 @@ export const services = {
                 const name = ctx.from?.first_name || "there";
                 ctx.reply(
                     `Welcome, ${name}!\n\n` +
-                        `I am Talkasauras Bot, your AI-powered chat companion on Telegram. ` +
-                        `I can carry on natural conversations, remember context, and adapt to your preferred style.\n\n` +
-                        `Feel free to type anything to begin chatting, or send /help to explore all available commands.`
+                    `I am Talkasauras Bot, your AI-powered chat companion on Telegram. ` +
+                    `I can carry on natural conversations, remember context, and adapt to your preferred style.\n\n` +
+                    `Feel free to type anything to begin chatting, or send /help to explore all available commands.`
                 );
             });
 
@@ -85,11 +85,11 @@ export const services = {
             bot.command("about", (ctx) => {
                 ctx.reply(
                     `About Talkasauras Bot\n` +
-                        `========================\n\n` +
-                        `Talkasauras Bot is an AI-powered Telegram chatbot designed to hold natural, ` +
-                        `meaningful conversations. It supports multiple writing styles, custom instructions, ` +
-                        `temporary chat modes, and scheduled reminders.\n\n` +
-                        `Built with care by Dev Trivedi.`
+                    `========================\n\n` +
+                    `Talkasauras Bot is an AI-powered Telegram chatbot designed to hold natural, ` +
+                    `meaningful conversations. It supports multiple writing styles, custom instructions, ` +
+                    `temporary chat modes, and scheduled reminders.\n\n` +
+                    `Built with care by Dev Trivedi.`
                 );
             });
 
@@ -97,20 +97,20 @@ export const services = {
             bot.command("help", (ctx) => {
                 ctx.reply(
                     `Available Commands\n` +
-                        `========================\n\n` +
-                        `/start                 -  Start the bot and receive a welcome message\n` +
-                        `/about                 -  Learn more about Talkasauras Bot\n` +
-                        `/help                  -  Display this list of commands\n` +
-                        `/contact               -  View the developer's contact details\n` +
-                        `/feedback              -  Share your valued feedback\n` +
-                        `/remindme              -  Schedule a reminder for a future date and time\n` +
-                        `/clear                 -  Clear your entire conversation history\n` +
-                        `/current_mode          -  Check your current chat mode\n` +
-                        `/temporary_on          -  Enable temporary chat mode\n` +
-                        `/temporary_off         -  Disable temporary mode and delete temp messages\n` +
-                        `/custom_instructions   -  Set personalized instructions for the bot\n` +
-                        `/writing_style         -  Choose your preferred writing style\n\n` +
-                        `You can also simply send me any message and I will respond right away.`
+                    `========================\n\n` +
+                    `/start                 -  Start the bot and receive a welcome message\n` +
+                    `/about                 -  Learn more about Talkasauras Bot\n` +
+                    `/help                  -  Display this list of commands\n` +
+                    `/contact               -  View the developer's contact details\n` +
+                    `/feedback              -  Share your valued feedback\n` +
+                    `/remindme              -  Schedule a reminder for a future date and time\n` +
+                    `/clear                 -  Clear your entire conversation history\n` +
+                    `/current_mode          -  Check your current chat mode\n` +
+                    `/temporary_on          -  Enable temporary chat mode\n` +
+                    `/temporary_off         -  Disable temporary mode and delete temp messages\n` +
+                    `/custom_instructions   -  Set personalized instructions for the bot\n` +
+                    `/writing_style         -  Choose your preferred writing style\n\n` +
+                    `You can also simply send me any message and I will respond right away.`
                 );
             });
 
@@ -118,11 +118,11 @@ export const services = {
             bot.command("contact", (ctx) => {
                 ctx.reply(
                     `Developer Contact Information\n` +
-                        `========================\n\n` +
-                        `Name:        Dev Trivedi\n` +
-                        `GitHub:      https://github.com/IamDevTrivedi/\n` +
-                        `LinkedIn:    https://www.linkedin.com/in/contact-devtrivedi/\n` +
-                        `Portfolio:   https://www.dev-trivedi.me/`
+                    `========================\n\n` +
+                    `Name:        Dev Trivedi\n` +
+                    `GitHub:      https://github.com/IamDevTrivedi/\n` +
+                    `LinkedIn:    https://www.linkedin.com/in/contact-devtrivedi/\n` +
+                    `Portfolio:   https://www.dev-trivedi.me/`
                 );
             });
 
@@ -130,7 +130,7 @@ export const services = {
             bot.command("feedback", (ctx) => {
                 ctx.reply(
                     "Your feedback matters to us and helps improve the bot.\n\n" +
-                        "Please reply to this message with your valued feedback.",
+                    "Please reply to this message with your valued feedback.",
                     { reply_markup: { force_reply: true } }
                 );
             });
@@ -165,12 +165,12 @@ export const services = {
 
                     await ctx.reply(
                         `Current Chat Mode\n` +
-                            `========================\n\n` +
-                            `Active Mode:  ${user!.temporaryOn ? "Temporary" : "Default"}\n\n` +
-                            `Available actions:\n` +
-                            `  /temporary_on   -  Switch to Temporary Mode\n` +
-                            `  /temporary_off  -  Switch back to Default Mode\n\n` +
-                            `Note: Temporary messages are automatically removed after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity or when you switch back to Default Mode.`
+                        `========================\n\n` +
+                        `Active Mode:  ${user!.temporaryOn ? "Temporary" : "Default"}\n\n` +
+                        `Available actions:\n` +
+                        `  /temporary_on   -  Switch to Temporary Mode\n` +
+                        `  /temporary_off  -  Switch back to Default Mode\n\n` +
+                        `Note: Temporary messages are automatically removed after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity or when you switch back to Default Mode.`
                     );
                 } catch (error) {
                     logger.error("Failed to fetch user for current_mode command", error);
@@ -192,10 +192,10 @@ export const services = {
                     });
                     await ctx.reply(
                         "Temporary Mode is now active.\n\n" +
-                            `All new messages from this point forward will be treated as temporary. ` +
-                            `They will be automatically deleted when you switch back to Default Mode ` +
-                            `or after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity.\n\n` +
-                            "To return to Default Mode, use /temporary_off."
+                        `All new messages from this point forward will be treated as temporary. ` +
+                        `They will be automatically deleted when you switch back to Default Mode ` +
+                        `or after ${TEMPORARY_MSG_TIMEOUT / (1000 * 60)} minutes of inactivity.\n\n` +
+                        "To return to Default Mode, use /temporary_off."
                     );
                 } catch (error) {
                     logger.error("Failed to enable temporary mode", error);
@@ -224,9 +224,9 @@ export const services = {
 
                     await ctx.reply(
                         "Temporary Mode has been deactivated.\n\n" +
-                            "All temporary messages have been permanently deleted and you are now " +
-                            "back in Default Mode. Your future messages will be stored as usual.\n\n" +
-                            "To re-enable Temporary Mode, use /temporary_on."
+                        "All temporary messages have been permanently deleted and you are now " +
+                        "back in Default Mode. Your future messages will be stored as usual.\n\n" +
+                        "To re-enable Temporary Mode, use /temporary_on."
                     );
                 } catch (error) {
                     logger.error("Failed to disable temporary mode", error);
@@ -240,12 +240,12 @@ export const services = {
             bot.command("remindme", async (ctx) => {
                 ctx.reply(
                     "Let's set up a reminder for you.\n\n" +
-                        "Please reply to this message with the date and time for your reminder.\n\n" +
-                        "Examples of accepted formats:\n" +
-                        "  - tomorrow at 3pm\n" +
-                        "  - March 5 at 10:00\n" +
-                        "  - in 2 hours\n" +
-                        "  - next Friday at noon",
+                    "Please reply to this message with the date and time for your reminder.\n\n" +
+                    "Examples of accepted formats:\n" +
+                    "  - tomorrow at 3pm\n" +
+                    "  - March 5 at 10:00\n" +
+                    "  - in 2 hours\n" +
+                    "  - next Friday at noon",
                     { reply_markup: { force_reply: true } }
                 );
             });
@@ -254,13 +254,13 @@ export const services = {
             bot.command("custom_instructions", async (ctx) => {
                 ctx.reply(
                     "Custom Instructions\n" +
-                        "========================\n\n" +
-                        "You can personalize how I respond to you by providing your own instructions.\n\n" +
-                        "Please reply to this message with your custom instructions.\n\n" +
-                        "Examples:\n" +
-                        "  - Always respond in bullet points\n" +
-                        "  - Explain things as if I am a beginner\n" +
-                        "  - Keep answers under 100 words",
+                    "========================\n\n" +
+                    "You can personalize how I respond to you by providing your own instructions.\n\n" +
+                    "Please reply to this message with your custom instructions.\n\n" +
+                    "Examples:\n" +
+                    "  - Always respond in bullet points\n" +
+                    "  - Explain things as if I am a beginner\n" +
+                    "  - Keep answers under 100 words",
                     { reply_markup: { force_reply: true } }
                 );
             });
@@ -337,7 +337,7 @@ export const services = {
                     if (!parsedDate) {
                         await ctx.reply(
                             "I couldn't understand that date/time. Please try again with something like " +
-                                '"tomorrow at 3pm" or "March 5 at 10:00".'
+                            '"tomorrow at 3pm" or "March 5 at 10:00".'
                         );
                         return;
                     }
@@ -360,8 +360,8 @@ export const services = {
 
                     await ctx.reply(
                         `Date and time accepted: ${formattedPreview}\n\n` +
-                            "Now, please reply to this message with the note for your reminder.\n\n" +
-                            `Scheduled for: ${parsedDate.toISOString()}`,
+                        "Now, please reply to this message with the note for your reminder.\n\n" +
+                        `Scheduled for: ${parsedDate.toISOString()}`,
                         { reply_markup: { force_reply: true } }
                     );
                     return;
@@ -448,10 +448,10 @@ export const services = {
 
                         await ctx.reply(
                             `Reminder Confirmed\n` +
-                                `========================\n\n` +
-                                `Scheduled:  ${formattedDate}\n` +
-                                `Note:       ${noteText}\n\n` +
-                                `I will send you a message at the scheduled time with your note.`
+                            `========================\n\n` +
+                            `Scheduled:  ${formattedDate}\n` +
+                            `Note:       ${noteText}\n\n` +
+                            `I will send you a message at the scheduled time with your note.`
                         );
                     } catch (error) {
                         logger.error("Failed to create reminder", error);
@@ -529,7 +529,7 @@ export const services = {
                         });
                         await ctx.reply(
                             "Your custom instructions have been saved successfully. " +
-                                "All future responses will follow your personalized preferences."
+                            "All future responses will follow your personalized preferences."
                         );
                     } catch (error) {
                         logger.error("Failed to save custom instructions", error);
@@ -539,6 +539,109 @@ export const services = {
                 }
 
                 return await next();
+            });
+
+            // Image handler for chatting with the bot using photos
+            bot.on("photo", async (ctx) => {
+                const telegramIdHash = ctx.state.telegramIdHash as string;
+
+                const caption = ctx.message.caption || "Asked with image";
+
+                const photo = ctx.message.photo;
+                const fileId = photo[photo.length - 1].file_id;
+
+                const fileLink = await ctx.telegram.getFileLink(fileId);
+                const imageResponse = await fetch(fileLink.href);
+                const arrayBuffer = await imageResponse.arrayBuffer();
+                const base64Image = Buffer.from(arrayBuffer).toString("base64");
+
+                const user = await prisma.user.findUnique({
+                    where: { telegramIdHash },
+                });
+
+                if (!user) {
+                    await ctx.reply("Sorry, something went wrong. Please try again later.");
+                    return;
+                }
+
+                let isActualTemporary = false;
+                if (user.temporaryOn) {
+                    if (Date.now() - Number(user.lastActive) <= TEMPORARY_MSG_TIMEOUT) {
+                        isActualTemporary = true;
+                    }
+                }
+
+                const prevMsgs = await prisma.message.findMany({
+                    where: {
+                        telegramIdHash,
+                        isTemporary: isActualTemporary,
+                    },
+                    select: {
+                        role: true,
+                        content: true,
+                    },
+                });
+
+                const preMsgsDecrypted = prevMsgs.map((msg) => {
+                    return {
+                        role: msg.role,
+                        content: decrypt({
+                            data: msg.content,
+                            key: env.KEYS.SECRET_KEY_2[user.keyVersion],
+                        }),
+                    };
+                });
+
+                const promptContent = caption || "Describe this image";
+
+                const systemPrompt = buildSystemPrompt(user.writingStyle, user.customInstructions);
+
+                console.log("AAAA");
+
+                const ollamaResponse = await ollama!.chat({
+                    model: env.OLLAMA.MODEL_NAME,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        ...preMsgsDecrypted,
+                        {
+                            role: "user",
+                            content: promptContent,
+                            images: [base64Image],
+                        },
+                    ],
+                });
+
+                const AIReply = ollamaResponse.message.content;
+
+                console.log(AIReply);
+
+                await prisma.message.create({
+                    data: {
+                        telegramIdHash,
+                        content: encrypt({
+                            data: caption,
+                            key: env.KEYS.SECRET_KEY_2[user.keyVersion],
+                        }),
+                        role: "user",
+                        createdAt: BigInt(Date.now()),
+                        isTemporary: isActualTemporary,
+                    },
+                });
+
+                await prisma.message.create({
+                    data: {
+                        telegramIdHash,
+                        content: encrypt({
+                            data: AIReply,
+                            key: env.KEYS.SECRET_KEY_2[user.keyVersion],
+                        }),
+                        role: "assistant",
+                        createdAt: BigInt(Date.now()),
+                        isTemporary: isActualTemporary,
+                    },
+                });
+
+                await ctx.reply(AIReply);
             });
 
             // Main message handler for chatting with the bot
@@ -594,7 +697,7 @@ export const services = {
                 const systemPrompt = buildSystemPrompt(user.writingStyle, user.customInstructions);
 
                 const response = await ollama!.chat({
-                    model: MODEL,
+                    model: env.OLLAMA.MODEL_NAME,
                     messages: [{ role: "system", content: systemPrompt }, ...preMsgsDecrypted],
                 });
 
@@ -643,6 +746,7 @@ export const services = {
 
                 await ctx.reply(AIReply);
             });
+
         } catch (error) {
             logger.error("Failed to prepare bot", error);
             process.exit(1);
