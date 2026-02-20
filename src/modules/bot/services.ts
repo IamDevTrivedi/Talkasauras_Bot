@@ -539,7 +539,12 @@ export const services = {
                     try {
                         await prisma.user.update({
                             where: { telegramIdHash },
-                            data: { customInstructions: instructionText },
+                            data: {
+                                customInstructions: encrypt({
+                                    key: env.KEYS.SECRET_KEY_2[env.KEYS.VERSION],
+                                    data: instructionText,
+                                })
+                            },
                         });
                         await ctx.reply(
                             "Your custom instructions have been saved successfully. " +
@@ -708,7 +713,10 @@ export const services = {
                     content: newMsg,
                 });
 
-                const systemPrompt = buildSystemPrompt(user.writingStyle, user.customInstructions);
+                const systemPrompt = buildSystemPrompt(user.writingStyle, decrypt({
+                    data: user.customInstructions,
+                    key: env.KEYS.SECRET_KEY_2[user.keyVersion],
+                }));
 
                 const response = await ollama!.chat({
                     model: env.OLLAMA.MODEL_NAME,
