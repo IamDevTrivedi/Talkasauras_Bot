@@ -668,7 +668,9 @@ export const services = {
                     },
                 });
 
-                await ctx.reply(AIReply);
+                await ctx.reply(AIReply, {
+                    reply_parameters: { message_id: ctx.message.message_id },
+                });
             });
 
             // Main message handler for chatting with the bot
@@ -779,7 +781,9 @@ export const services = {
                     },
                 });
 
-                await ctx.reply(AIReply);
+                await ctx.reply(AIReply, {
+                    reply_parameters: { message_id: ctx.message.message_id },
+                });
             });
         } catch (error) {
             logger.error("Failed to prepare bot", error);
