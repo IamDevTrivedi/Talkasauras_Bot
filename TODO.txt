@@ -1,0 +1,3 @@
+=> make one single key version for a particular user 
+=> make a migration script for converting key versions 
+=> apply rate limitings 

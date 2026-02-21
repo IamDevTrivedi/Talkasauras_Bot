@@ -79,15 +79,8 @@ export const env = {
     },
 
     KEYS: {
-        SECRET_KEY_1: (process.env.SECRET_KEY_1 as string)
-            .split("|")
-            .filter(Boolean)
-            .map((key) => key.trim()),
-        SECRET_KEY_2: (process.env.SECRET_KEY_2 as string)
-            .split("|")
-            .filter(Boolean)
-            .map((key) => key.trim()),
-        VERSION: Number(process.env.KEYS_VERSION),
+        SECRET_KEY_1: process.env.SECRET_KEY_1 as string,
+        SECRET_KEY_2: process.env.SECRET_KEY_2 as string,
     },
 
     ADMINS: (process.env.ADMINS as string)

@@ -35,7 +35,6 @@ const init = async () => {
         logger.info(`Server is running on port ${env.PORT}`);
     });
 
-
     await botService.prepare();
     botService.launch();
     await adminServices.prepare();

@@ -26,13 +26,11 @@ model User {
   telegramIdHash String @id
   telegramIdEnc  String
 
-  customInstructions String       @default("")
+  customInstructions String?
   writingStyle       WritingStyle @default(DEFAULT)
   model              Model        @default(DEFAULT)
 
   temporaryOn Boolean @default(false)
-
-  keyVersion Int @default(0)
 
   createdAt  BigInt
   lastActive BigInt
@@ -60,7 +58,6 @@ model Reminder {
   id Int @id @default(autoincrement())
 
   telegramIdEnc String
-  keyVersion    Int
 
   message  String
   remindAt BigInt

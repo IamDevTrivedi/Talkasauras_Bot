@@ -9,14 +9,13 @@ const APP_START_TIME = Date.now();
 export const services = {
     prepare: async () => {
         try {
-
             adminBot.use(async (ctx, next) => {
                 const username = ctx.from?.username;
 
                 if (!username || !env.ADMINS.includes(username)) {
                     await ctx.reply(
                         "This bot is for authorized administrators only.\n\n" +
-                        "If you believe this is an error, please contact the developer."
+                            "If you believe this is an error, please contact the developer."
                     );
                     return;
                 }
@@ -24,41 +23,37 @@ export const services = {
                 await next();
             });
 
-
             adminBot.start((ctx) => {
                 const name = ctx.from?.first_name || "Admin";
                 ctx.reply(
                     `Welcome, ${name}!\n\n` +
-                    `This is the Talkasauras Admin Panel Bot.\n\n` +
-                    `Available commands:\n` +
-                    `  /broadcast   -  Send a message to all users\n` +
-                    `  /analytics   -  View bot and app analytics\n` +
-                    `  /help        -  Show this help message`
+                        `This is the Talkasauras Admin Panel Bot.\n\n` +
+                        `Available commands:\n` +
+                        `  /broadcast   -  Send a message to all users\n` +
+                        `  /analytics   -  View bot and app analytics\n` +
+                        `  /help        -  Show this help message`
                 );
             });
-
 
             adminBot.command("help", (ctx) => {
                 ctx.reply(
                     `Admin Commands\n` +
-                    `========================\n\n` +
-                    `/start       -  Welcome message\n` +
-                    `/broadcast   -  Broadcast a message to all bot users\n` +
-                    `/analytics   -  View bot and app analytics\n` +
-                    `/help        -  Display this help message`
+                        `========================\n\n` +
+                        `/start       -  Welcome message\n` +
+                        `/broadcast   -  Broadcast a message to all bot users\n` +
+                        `/analytics   -  View bot and app analytics\n` +
+                        `/help        -  Display this help message`
                 );
             });
-
 
             adminBot.command("broadcast", (ctx) => {
                 ctx.reply(
                     "Broadcast Message\n" +
-                    "========================\n\n" +
-                    "Please reply to this message with the text you want to broadcast to all users.",
+                        "========================\n\n" +
+                        "Please reply to this message with the text you want to broadcast to all users.",
                     { reply_markup: { force_reply: true } }
                 );
             });
-
 
             adminBot.on("message", async (ctx, next) => {
                 const msg = ctx.message;
@@ -81,7 +76,6 @@ export const services = {
                         const users = await prisma.user.findMany({
                             select: {
                                 telegramIdEnc: true,
-                                keyVersion: true,
                             },
                         });
 
@@ -93,16 +87,15 @@ export const services = {
                         for (const user of users) {
                             await broadcastQueue.add(QueueNames.SEND_BROADCAST, {
                                 telegramIdEnc: user.telegramIdEnc!,
-                                keyVersion: user.keyVersion,
                                 message: broadcastText,
                             });
                         }
 
                         await ctx.reply(
                             `Broadcast Queued\n` +
-                            `========================\n\n` +
-                            `Message: ${broadcastText}\n\n` +
-                            `${users.length} user(s) will be notified.`
+                                `========================\n\n` +
+                                `Message: ${broadcastText}\n\n` +
+                                `${users.length} user(s) will be notified.`
                         );
 
                         logger.info(
@@ -119,7 +112,6 @@ export const services = {
 
                 return next();
             });
-
 
             adminBot.command("analytics", async (ctx) => {
                 try {
@@ -163,20 +155,20 @@ export const services = {
 
                     await ctx.reply(
                         `Bot Analytics\n` +
-                        `========================\n\n` +
-                        `Users\n` +
-                        `  Total users: ${totalUsers}\n` +
-                        `  Active (last 3 hours): ${activeUsers3h}\n` +
-                        `  Active (last 24 hours): ${activeUsers24h}\n\n` +
-                        `Activity\n` +
-                        `  Total messages stored: ${totalMessages}\n` +
-                        `  Total feedback received: ${totalFeedback}\n` +
-                        `  Pending reminders: ${pendingReminders}\n\n` +
-                        `App\n` +
-                        `  App uptime: ${uptimeDays}d ${uptimeHours}h ${uptimeMinutes}m\n` +
-                        `  Process uptime: ${procDays}d ${procHours}h ${procMinutes}m\n` +
-                        `  Environment: ${env.NODE_ENV}\n` +
-                        `  Ollama provider: ${env.OLLAMA.PROVIDER}`
+                            `========================\n\n` +
+                            `Users\n` +
+                            `  Total users: ${totalUsers}\n` +
+                            `  Active (last 3 hours): ${activeUsers3h}\n` +
+                            `  Active (last 24 hours): ${activeUsers24h}\n\n` +
+                            `Activity\n` +
+                            `  Total messages stored: ${totalMessages}\n` +
+                            `  Total feedback received: ${totalFeedback}\n` +
+                            `  Pending reminders: ${pendingReminders}\n\n` +
+                            `App\n` +
+                            `  App uptime: ${uptimeDays}d ${uptimeHours}h ${uptimeMinutes}m\n` +
+                            `  Process uptime: ${procDays}d ${procHours}h ${procMinutes}m\n` +
+                            `  Environment: ${env.NODE_ENV}\n` +
+                            `  Ollama provider: ${env.OLLAMA.PROVIDER}`
                     );
                 } catch (error) {
                     logger.error("Failed to fetch analytics", error);

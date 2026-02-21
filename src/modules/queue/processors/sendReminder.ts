@@ -27,12 +27,12 @@ export const sendReminder = async (job: Job<SendReminderJobData>) => {
 
         const telegramId = decrypt({
             data: reminder.telegramIdEnc,
-            key: env.KEYS.SECRET_KEY_2[reminder.keyVersion],
+            key: env.KEYS.SECRET_KEY_2,
         });
 
         const message = decrypt({
             data: reminder.message,
-            key: env.KEYS.SECRET_KEY_2[reminder.keyVersion],
+            key: env.KEYS.SECRET_KEY_2,
         });
 
         await bot.telegram.sendMessage(
@@ -47,7 +47,6 @@ export const sendReminder = async (job: Job<SendReminderJobData>) => {
             where: { id: reminder.id },
             data: { executed: true },
         });
-
     } catch (error) {
         logger.error(`Error processing reminder ${job.data.reminderId}:`, error);
         throw error;
