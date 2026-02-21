@@ -9,18 +9,33 @@ const APP_START_TIME = Date.now();
 export const services = {
     prepare: async () => {
         try {
-            adminBot.use(async (ctx, next) => {
-                const username = ctx.from?.username;
-
-                if (!username || !env.ADMINS.includes(username)) {
-                    await ctx.reply(
-                        "This bot is for authorized administrators only.\n\n" +
-                            "If you believe this is an error, please contact the developer."
-                    );
-                    return;
+            // Global error handler to prevent crashes
+            adminBot.catch((err, ctx) => {
+                logger.error(`Admin bot error for update ${ctx.updateType}`, err);
+                try {
+                    ctx.reply("An unexpected error occurred. Please try again later.");
+                } catch {
+                    logger.error("Failed to send error message to admin");
                 }
+            });
 
-                await next();
+            adminBot.use(async (ctx, next) => {
+                try {
+                    const username = ctx.from?.username;
+
+                    if (!username || !env.ADMINS.includes(username)) {
+                        await ctx.reply(
+                            "This bot is for authorized administrators only.\n\n" +
+                                "If you believe this is an error, please contact the developer."
+                        );
+                        return;
+                    }
+
+                    await next();
+                } catch (error) {
+                    logger.error("Admin auth middleware error", error);
+                    await ctx.reply("Sorry, something went wrong. Please try again later.");
+                }
             });
 
             adminBot.start((ctx) => {

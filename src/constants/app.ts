@@ -2,6 +2,9 @@ import { WritingStyle } from "@prisma/client";
 
 export const TEMPORARY_MSG_TIMEOUT = 1000 * 60 * 5;
 
+export const RATE_LIMIT_WINDOW = 60;
+export const RATE_LIMIT_MAX = 10;
+
 export const SYSTEM_PROMPT =
     "You are Talkasauras Bot, a friendly and helpful AI-powered chat companion on Telegram. " +
     "You were built by Dev Trivedi. " +
