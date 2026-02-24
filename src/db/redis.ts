@@ -2,20 +2,14 @@ import { env } from "@/config/env.js";
 import { logger } from "@/utils/logger.js";
 import { createClient, RedisClientType } from "redis";
 
-let client: RedisClientType;
-
-if (env.LOCAL_REDIS) {
-    client = createClient();
-} else {
-    client = createClient({
-        username: env.REDIS_USERNAME,
-        password: env.REDIS_PASSWORD,
-        socket: {
-            host: env.REDIS_HOST,
-            port: env.REDIS_PORT,
-        },
-    });
-}
+const client: RedisClientType = createClient({
+    socket: {
+        host: env.REDIS_HOST,
+        port: env.REDIS_PORT,
+    },
+    username: env.REDIS_USERNAME,
+    password: env.REDIS_PASSWORD,
+});
 
 client.on("error", (error: Error) => {
     logger.error("Redis Client Error", error);
@@ -23,7 +17,7 @@ client.on("error", (error: Error) => {
 });
 
 client.on("connect", () => {
-    logger.info(`Redis Client Connected: ${env.LOCAL_REDIS ? "Local" : "Remote"} Instance`);
+    logger.info(`Redis Client Connected successfully.`);
 });
 
 export const connectRedis = async (): Promise<void> => {

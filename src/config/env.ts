@@ -45,7 +45,6 @@ export const env = {
     REDIS_PASSWORD: process.env.REDIS_PASSWORD as string,
     REDIS_HOST: process.env.REDIS_HOST as string,
     REDIS_PORT: Number(process.env.REDIS_PORT),
-    LOCAL_REDIS: process.env.LOCAL_REDIS === "1",
 
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN as string,
 
