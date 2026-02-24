@@ -12,10 +12,12 @@ const envSchema = z
 
         DATABASE_URL: z.url(),
 
-        REDIS_USERNAME: z.string().min(1),
-        REDIS_PASSWORD: z.string().min(1),
-        REDIS_HOST: z.string().min(1),
-        REDIS_PORT: z.int().min(1).max(65535),
+        REDIS: z.object({
+            USERNAME: z.string().min(1),
+            PASSWORD: z.string().min(1),
+            HOST: z.string().min(1),
+            PORT: z.int().min(1).max(65535),
+        }),
 
         TELEGRAM_BOT_TOKEN: z.string().min(1),
 

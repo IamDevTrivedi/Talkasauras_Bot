@@ -21,14 +21,10 @@ const init = async () => {
 
     const { default: rootRouter } = await import("@/modules/root/routes.js");
     const { default: healthRouter } = await import("@/modules/health/routes.js");
+    const { default: mockRouter } = await import("@/modules/mock/routes.js");
     app.use("/", rootRouter);
     app.use("/api/v1/health", healthRouter);
-
-    if (env.OLLAMA.PROVIDER === "MOCK") {
-        const { default: mockRouter } = await import("@/modules/mock/routes.js");
-        app.use("/mock", mockRouter);
-        logger.info("Mock Ollama routes enabled at /mock");
-    }
+    app.use("/mock", mockRouter);
 
     app.listen(env.PORT, () => {
         logger.info(`Mode: ${env.NODE_ENV}`);

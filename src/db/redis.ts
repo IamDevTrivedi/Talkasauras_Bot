@@ -4,11 +4,11 @@ import { createClient, RedisClientType } from "redis";
 
 const client: RedisClientType = createClient({
     socket: {
-        host: env.REDIS_HOST,
-        port: env.REDIS_PORT,
+        host: env.REDIS.HOST,
+        port: env.REDIS.PORT,
     },
-    username: env.REDIS_USERNAME,
-    password: env.REDIS_PASSWORD,
+    username: env.REDIS.USERNAME,
+    password: env.REDIS.PASSWORD,
 });
 
 client.on("error", (error: Error) => {

@@ -183,7 +183,7 @@ export const services = {
                             `  App uptime: ${uptimeDays}d ${uptimeHours}h ${uptimeMinutes}m\n` +
                             `  Process uptime: ${procDays}d ${procHours}h ${procMinutes}m\n` +
                             `  Environment: ${env.NODE_ENV}\n` +
-                            `  Ollama provider: ${env.OLLAMA.PROVIDER}`
+                            `  Ollama provider: ${env.OLLAMA.HOST}`
                     );
                 } catch (error) {
                     logger.error("Failed to fetch analytics", error);

@@ -41,10 +41,12 @@ export const env = {
 
     DATABASE_URL: process.env.DATABASE_URL as string,
 
-    REDIS_USERNAME: process.env.REDIS_USERNAME as string,
-    REDIS_PASSWORD: process.env.REDIS_PASSWORD as string,
-    REDIS_HOST: process.env.REDIS_HOST as string,
-    REDIS_PORT: Number(process.env.REDIS_PORT),
+    REDIS: {
+        USERNAME: process.env.REDIS_USERNAME as string,
+        PASSWORD: process.env.REDIS_PASSWORD as string,
+        HOST: process.env.REDIS_HOST as string,
+        PORT: Number(process.env.REDIS_PORT),
+    },
 
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN as string,
 
