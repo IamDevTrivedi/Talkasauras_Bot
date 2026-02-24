@@ -7,7 +7,7 @@
         "lib": ["ES2022"],
 
         /* Output */
-        "outDir": "./build",
+        "outDir": "./dist",
         "rootDir": "./src",
 
         /* Emit */
@@ -30,5 +30,5 @@
         }
     },
     "include": ["src/**/*.ts"],
-    "exclude": ["node_modules", "build"]
+    "exclude": ["node_modules", "dist"]
 }
