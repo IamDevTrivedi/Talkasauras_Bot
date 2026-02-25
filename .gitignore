@@ -22,6 +22,8 @@ pids
 .env.*
 .env.*.local
 !.env.example
+!.env.production.example
+!.env.development.example
 
 # Next.js
 .next/
