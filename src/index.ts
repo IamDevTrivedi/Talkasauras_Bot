@@ -24,7 +24,7 @@ const init = async () => {
     const { default: mockRouter } = await import("@/modules/mock/routes.js");
     app.use("/", rootRouter);
     app.use("/api/v1/health", healthRouter);
-    app.use("/mock", mockRouter);
+    app.use("/api/v1/mock", mockRouter);
 
     app.listen(env.PORT, () => {
         logger.info(`Mode: ${env.NODE_ENV}`);
