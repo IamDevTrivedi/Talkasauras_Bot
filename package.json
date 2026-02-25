@@ -7,7 +7,7 @@
     "scripts": {
         "build": "tsc && tsc-alias",
         "dev": "cross-env NODE_ENV=development tsx watch --clear-screen=true --tsconfig tsconfig.json --watch src src/index.ts",
-        "start": "cross-env NODE_ENV=production node build/index.js",
+        "start": "cross-env NODE_ENV=production node dist/index.js",
         "clean:all": "node scripts/clean-all.js",
         "install:all": "node scripts/install-all.js",
         "reset:all": "node scripts/reset-all.js",
@@ -19,7 +19,7 @@
         "db:push": "prisma db push",
         "db:migrate": "prisma migrate dev",
         "db:migrate:deploy": "prisma migrate deploy",
-        "db:studio": "prisma studio",
+        "db:studio": "prisma studio --browser none",
         "db:seed": "tsx prisma/seed.ts",
         "db:reset": "prisma migrate reset"
     },

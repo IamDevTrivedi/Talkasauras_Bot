@@ -1,0 +1,17 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable pnpm
+RUN pnpm install
+
+COPY . .
+
+RUN pnpm db:generate
+
+EXPOSE 5000
+
+ENV NODE_ENV=development
+
+CMD ["sh", "-c", "pnpm db:push && pnpm run dev"]
