@@ -9,7 +9,7 @@ export interface UpdateLastActivityJobData {
 
 export const updateLastActivity = async (job: Job<UpdateLastActivityJobData>) => {
     try {
-        await prisma.user.update({
+        await prisma.user.updateMany({
             where: {
                 telegramIdHash: job.data.telegramIdHash,
             },
