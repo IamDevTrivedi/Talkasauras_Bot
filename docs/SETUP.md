@@ -139,6 +139,14 @@ Contains variables for the production environment. It mirrors `.env.development`
     - **Meaning:** The password for the `redis-commander` web interface.
     - **Example:** `secure_password_123`
 
+- **PGADMIN_DEFAULT_EMAIL**
+    - **Meaning:** The default email for logging into pgAdmin.
+    - **Example:** `admin@example.com`
+
+- **PGADMIN_DEFAULT_PASSWORD**
+    - **Meaning:** The default password for logging into pgAdmin.
+    - **Example:** `secure_password_123`
+
 ---
 
 ## How to Run the Project
@@ -206,7 +214,8 @@ docker compose -f docker-compose.dev.yml up
 
 ### Production Mode
 
-In production, all services run behind **Nginx** for single-port access (`8080`).
+In production, all services run behind **Nginx** for single-port access (`8080` of the container).
+you can map this to any port on your host machine (let `5004` for example)
 
 1. **Build:**
 
@@ -222,5 +231,6 @@ docker compose up
 
 **Endpoints:**
 
-- **Application:** `http://localhost:8080/app`
-- **Redis Commander:** `http://localhost:8080/commander`
+- **Application:** `http://localhost:5004/app`
+- **Redis Commander:** `http://localhost:5004/commander`
+- **pgAdmin:** `http://localhost:5004/pgadmin`
