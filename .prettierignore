@@ -37,3 +37,7 @@ coverage
 # Misc
 *.min.js
 *.min.css
+
+# Docs file
+docs
+*.md
