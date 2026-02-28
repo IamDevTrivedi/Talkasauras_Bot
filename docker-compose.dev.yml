@@ -22,6 +22,8 @@ services:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+        sysctls:
+            - net.ipv6.conf.all.disable_ipv6=1
 
     redis:
         image: redis:8-alpine
