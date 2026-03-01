@@ -1,8 +1,8 @@
+import express from "express";
 import { checkEnv } from "@/config/checkEnv.js";
 import { connectDB } from "@/db/prisma.js";
 import { connectRedis } from "@/db/redis.js";
 import { shutdownManager } from "@/shutdown.js";
-import express from "express";
 import { env } from "@/config/env.js";
 import { logger } from "@/utils/logger.js";
 import { services as botService } from "@/modules/bot/services.js";
