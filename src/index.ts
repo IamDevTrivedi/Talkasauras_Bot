@@ -32,7 +32,7 @@ const init = async () => {
     });
 
     await botService.prepare();
-    botService.launch();
+    await botService.launch();
     await adminServices.prepare();
     adminServices.launch();
 };
