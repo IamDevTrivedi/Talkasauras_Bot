@@ -754,7 +754,8 @@ export const services = {
                                 data: user.customInstructions,
                                 key: env.KEYS.SECRET_KEY_2,
                             })
-                            : undefined
+                            : undefined,
+                        `${ctx.from.first_name} ${ctx.from.last_name}`
                     );
 
                     const ollamaResponse = await ollama!.chat({
@@ -869,7 +870,8 @@ export const services = {
                                 data: user.customInstructions,
                                 key: env.KEYS.SECRET_KEY_2,
                             })
-                            : undefined
+                            : undefined,
+                        `${ctx.from.first_name} ${ctx.from.last_name}`
                     );
 
                     const response = await ollama!.chat({

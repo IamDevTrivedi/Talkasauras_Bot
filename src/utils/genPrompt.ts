@@ -3,9 +3,15 @@ import { WritingStyle } from "@prisma/client";
 
 export const buildSystemPrompt = (
     writingStyle: WritingStyle,
-    customInstructions?: string
+    customInstructions?: string,
+    name?: string
 ): string => {
     let prompt = SYSTEM_PROMPT;
+
+    if (name && name.trim().length > 0) {
+        prompt += `\n\nName of the user is ${name.trim()}.`;
+        console.log("aaa");
+    }
 
     const styleAddition = WRITING_STYLE_PROMPTS[writingStyle];
     if (styleAddition) {
