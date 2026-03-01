@@ -56,14 +56,11 @@ export const dailyMsgCreatorQueue = new Queue<DailyMsgCreatorJobData>(
     }
 );
 
-export const dailyMsgSenderQueue = new Queue<DailyMsgSenderJobData>(
-    QueueNames.DAILY_MSG_SENDER,
-    {
-        connection: redisConfig,
-        defaultJobOptions: {
-            attempts: 3,
-            removeOnComplete: true,
-            removeOnFail: false,
-        },
-    }
-);
+export const dailyMsgSenderQueue = new Queue<DailyMsgSenderJobData>(QueueNames.DAILY_MSG_SENDER, {
+    connection: redisConfig,
+    defaultJobOptions: {
+        attempts: 3,
+        removeOnComplete: true,
+        removeOnFail: false,
+    },
+});

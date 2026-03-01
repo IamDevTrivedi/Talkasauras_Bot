@@ -20,9 +20,7 @@ export const dailyMsgSender = async (job: Job<DailyMsgSenderJobData>) => {
         await bot.telegram.sendMessage(
             telegramId,
             `${job.data.message}\n`,
-            Markup.inlineKeyboard([
-                [Markup.button.callback("Unsubscribe 😓", "daily:unsubscribe")],
-            ])
+            Markup.inlineKeyboard([[Markup.button.callback("Unsubscribe 😓", "daily:unsubscribe")]])
         );
     } catch (error: unknown) {
         logger.error(`Error sending daily message:`, error);

@@ -46,7 +46,9 @@ export const dailyMsgCreator = async (_job: Job<DailyMsgCreatorJobData>): Promis
             },
         });
 
-        logger.info(`Daily message created. Targeting ${targetUsers.length} inactive subscribed users.`);
+        logger.info(
+            `Daily message created. Targeting ${targetUsers.length} inactive subscribed users.`
+        );
         logger.info(`Daily message content: ${dailyMessage}`);
 
         for (const user of targetUsers) {

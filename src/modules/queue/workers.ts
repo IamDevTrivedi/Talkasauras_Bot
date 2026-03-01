@@ -22,20 +22,12 @@ export const broadcastWorker = new Worker(QueueNames.SEND_BROADCAST, sendBroadca
     concurrency: 10,
 });
 
-export const dailyMsgCreatorWorker = new Worker(
-    QueueNames.DAILY_MSG_CREATOR,
-    dailyMsgCreator,
-    {
-        connection: redisConfig,
-        concurrency: 1,
-    }
-);
+export const dailyMsgCreatorWorker = new Worker(QueueNames.DAILY_MSG_CREATOR, dailyMsgCreator, {
+    connection: redisConfig,
+    concurrency: 1,
+});
 
-export const dailyMsgSenderWorker = new Worker(
-    QueueNames.DAILY_MSG_SENDER,
-    dailyMsgSender,
-    {
-        connection: redisConfig,
-        concurrency: 10,
-    }
-);
+export const dailyMsgSenderWorker = new Worker(QueueNames.DAILY_MSG_SENDER, dailyMsgSender, {
+    connection: redisConfig,
+    concurrency: 10,
+});
