@@ -1,17 +1,24 @@
 import { SYSTEM_PROMPT, WRITING_STYLE_PROMPTS } from "@/constants/app.js";
 import { WritingStyle } from "@prisma/client";
 
-export const buildSystemPrompt = (
-    writingStyle: WritingStyle,
-    customInstructions?: string,
-    name?: string
-): string => {
-    let prompt = SYSTEM_PROMPT;
+interface buildSystemPromptParams {
+    writingStyle: WritingStyle;
+    firstName: string;
+    lastName?: string;
+    customInstructions?: string;
+}
 
-    if (name && name.trim().length > 0) {
-        prompt += `\n\nName of the user is ${name.trim()}.`;
-        console.log("aaa");
+export const buildSystemPrompt = (params: buildSystemPromptParams): string => {
+    const { writingStyle, firstName, lastName, customInstructions } = params;
+
+    let prompt = SYSTEM_PROMPT;
+    let name = firstName;
+
+    if (lastName && lastName.trim().length > 0) {
+        name += " " + lastName.trim();
     }
+
+    prompt += "\n\n" + "The user's name is: " + name;
 
     const styleAddition = WRITING_STYLE_PROMPTS[writingStyle];
     if (styleAddition) {
