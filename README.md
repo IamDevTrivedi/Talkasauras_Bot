@@ -70,7 +70,7 @@ Access the bot directly on Telegram:
 The application is fully containerized using Docker:
 
 - **Development Mode**: 5 containers
-- **Production Mode**: 5 containers with Nginx reverse proxy for simplified deployment on a single port
+- **Production Mode**: 6 containers with Nginx reverse proxy for simplified deployment on a single port
 
 ### Key Components
 
@@ -78,6 +78,18 @@ The application is fully containerized using Docker:
 - **Redis Caching**: Fast response times through intelligent caching strategies
 - **BullMQ Workers**: Reliable background job processing for reminders and asynchronous tasks
 - **PostgreSQL + Prisma**: Type-safe database operations with robust data persistence
+
+### System Design
+
+<div align="center">
+    <img src="./docs/diagrams/system_design.png"/> 
+</div>
+
+### Deployment Architecture
+
+<div align="center">
+    <img src="./docs/diagrams/deployment_architecture.png"/> 
+</div>
 
 ## Local Project Setup
 
