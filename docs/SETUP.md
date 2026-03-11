@@ -111,11 +111,6 @@ Contains variables for the main application and its dependencies (PostgreSQL, Re
     - **Requirement:** Minimum 32 characters in length.
     - **Example:** `f29a0b98b9672530a4c1a0e57a0291e16b9aa7f42bfece8cb26d039aa7f42bfe`
 
-- **KEYS_VERSION**
-    - **Meaning:** The versioning for the secret keys above.
-    - **Requirement:** A unique number. Incremental (1, 2, 3...) is preferred.
-    - **Example:** `1`
-
 - **ADMINS**
     - **Meaning:** List of usernames allowed to access the internal admin bot.
     - **Requirement:** Usernames must be separated by a pipe (`|`).
