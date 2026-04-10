@@ -1,128 +1,304 @@
-# Setup Instructions
+# Environment Variables Reference
 
-This file contains the setup instructions for a newly cloned instance of this repository.
+This document provides a reference for all environment variables used in the application.
 
-## Environment Variables Reference
+Example files are provided in the repository for each environment:
 
-Please refer to the [Environment Variables Reference](ENV_VARS_REFERENCE.md) document for detailed information on all environment variables used in this project, including their descriptions, formats, and examples.
+| File | Example |
+|------|---------|
+| Root `.env` | [.env.example](../.env.example) |
+| Development | [.env.development.example](../.env.development.example) |
+| Production | [.env.production.example](../.env.production.example) |
 
----
+**Quick setup — copy all example files at once:**
 
-## How to Run the Project
-
-By this point, you should have all the necessary environment variables set up as per the reference document.
+```bash
+cp -n .env.example .env
+cp -n .env.development.example .env.development
+cp -n .env.production.example .env.production
+```
 
 > **Important:** If any value in `.env.*` is missing or invalid, the server will fail to start and throw an error at startup. Ensure all variables are filled with proper values before starting the server.
 
-### Prerequisites
+---
 
-| Requirement | Details |
-|-------------|---------|
-| **Docker & Docker Compose** | [Install Guide](https://docs.docker.com/get-started/get-docker/) |
-| **Node.js & pnpm** | [Node.js Download](https://nodejs.org/en/download) |
-| **Configuration** | Ensure all `.env` files are populated |
+## Root `.env`
+
+Contains a single variable used by Prisma to connect to the database.
+
+#### `DATABASE_URL`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Connection string for the database, used by Prisma |
+| **Format** | `postgresql://<username>:<password>@<host>:<port>/<database_name>?schema=<schema_name>` |
+| **Example** | `postgresql://postgres:password@postgres:5432/talkasauras_bot?schema=public` |
 
 ---
 
-### Development Mode
+## Development `.env.development`
 
-#### 1. Fresh Build
+Contains environment variables specific to development mode.
 
-Run this at the root of the project:
+> **Note:** `.env.development` is a subset of `.env.production` — all variables here must also be present in `.env.production`, typically with different values suited for production.
 
-```bash
-docker compose -f docker-compose.dev.yml build --no-cache
+---
+
+### Application
+
+#### `PORT`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Port on which the Express server listens for incoming requests |
+| **Format** | `<port_number>` |
+| **Example** | `5000` |
+
+---
+
+### PostgreSQL
+
+You can use either a local PostgreSQL instance spun up via `docker compose up`, or an external service (e.g. ElephantSQL, Heroku Postgres). If using an external service, set the variables below accordingly.
+
+**Default values for local Docker Compose PostgreSQL:**
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_DB=talkasauras_bot
+
+DATABASE_URL=postgresql://postgres:password@postgres:5432/talkasauras_bot?schema=public
 ```
 
-#### 2. Start Services
+#### `POSTGRES_USER`
 
-```bash
-docker compose -f docker-compose.dev.yml up
+| Field | Value |
+|-------|-------|
+| **Description** | Username for the PostgreSQL database |
+| **Format** | `<username>` |
+| **Example** | `postgres` |
+
+#### `POSTGRES_PASSWORD`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Password for the PostgreSQL database |
+| **Format** | `<password>` |
+| **Example** | `password` |
+
+#### `POSTGRES_DB`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Name of the PostgreSQL database |
+| **Format** | `<database_name>` |
+| **Example** | `talkasauras_bot` |
+
+#### `DATABASE_URL`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Connection string constructed from the Postgres variables above, used by Prisma |
+| **Format** | `postgresql://{{POSTGRES_USER}}:{{POSTGRES_PASSWORD}}@postgres:5432/{{POSTGRES_DB}}?schema=public` |
+| **Example** | `postgresql://postgres:password@postgres:5432/talkasauras_bot?schema=public` |
+| **Constraint** | Must match the `DATABASE_URL` in the root `.env` to ensure consistency |
+
+---
+
+### Redis
+
+You can use either a local Redis instance spun up via `docker compose up`, or an external service (e.g. Redis Cloud, RedisLabs). If using an external service, set the variables below accordingly.
+
+**Default values for local Docker Compose Redis:**
+
+```env
+REDIS_USERNAME=default
+REDIS_PASSWORD=password
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```
 
-#### 3. Local Ollama Setup *(Optional)*
+#### `REDIS_USERNAME`
 
-If using the local Ollama container, pull your model:
+| Field | Value |
+|-------|-------|
+| **Description** | Username for the Redis database |
+| **Format** | `<username>` |
+| **Example** | `default` |
 
-```bash
-docker exec talkasauras-dev-ollama ollama pull gemma3:4b
+#### `REDIS_PASSWORD`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Password for the Redis database |
+| **Format** | `<password>` |
+| **Example** | `password` |
+
+#### `REDIS_HOST`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Host for the Redis database |
+| **Format** | `<host>` |
+| **Example** | `redis` |
+
+#### `REDIS_PORT`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Port for the Redis database |
+| **Format** | `<port_number>` |
+| **Example** | `6379` |
+
+---
+
+### Telegram Bot
+
+#### `TELEGRAM_BOT_TOKEN`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Token for the main Telegram bot, used to authenticate with the Telegram API |
+| **Format** | `<bot_token>` |
+| **Example** | `7692349333:Ahjefgjhe-NMNfbjeefnfkjejnkjwY` |
+| **Obtain from** | [Telegram BotFather](https://t.me/BotFather) |
+
+#### `TELEGRAM_BOT_TOKEN_INTERNAL`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Token for the internal Telegram bot, used to authenticate the internal bot with the Telegram API |
+| **Format** | `<bot_token>` |
+| **Example** | `8482738499:AAGdb8a9c2cc847369786f3daa54773Xhu4` |
+| **Obtain from** | [Telegram BotFather](https://t.me/BotFather) |
+
+---
+
+### Ollama
+
+You can use either a local Ollama instance spun up via `docker compose up`, or an external Ollama service. If using an external service, set the variables below accordingly.
+
+**Default values for local Docker Compose Ollama:**
+
+```env
+OLLAMA_API_KEY=any_bullshit_value_since_ollama_does_not_require_api_key_for_localhost
+OLLAMA_HOST=http://ollama:11434
+OLLAMA_MODEL_NAME=phi3:mini
 ```
 
-> **Constraint:** Ensure the model you pull matches the one specified in your `.env.development` file (e.g. `gemma3:4b`). A mismatch will cause the server to fail to respond to requests due to a model-not-found error.
->
-> Note: Pulling a model can take a long time depending on your internet speed — models are typically several gigabytes.
+#### `OLLAMA_API_KEY`
 
-#### 4. Prisma Migrations
+| Field | Value |
+|-------|-------|
+| **Description** | API key for Ollama, used to authenticate with the Ollama API |
+| **Format** | `<ollama_api_key>` |
+| **Example** | `qwertyuioplkjhgfdsazxcvbnm1234567890` |
+| **Note** | Any value works for localhost — Ollama does not require an API key locally |
+| **Obtain from** | [Ollama](https://ollama.com/) |
 
-To manage the Prisma schema in development:
+#### `OLLAMA_HOST`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Host URL for the Ollama API |
+| **Format** | `<ollama_host>` |
+| **Example** | `http://ollama:11434` |
+
+#### `OLLAMA_MODEL_NAME`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Name of the model to use with the Ollama API |
+| **Format** | `<ollama_model_name>` |
+| **Example** | `phi3:mini` |
+
+---
+
+### Application Security
+
+#### `SECRET_KEY_1`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Used by HMAC for key hashing of Telegram user IDs before storing them in the database |
+| **Format** | `<secret_key>` |
+| **Example** | `any_random_string_of_characters_and_numbers` |
+
+Generate with one of:
 
 ```bash
-# Creates a versioned migration stored in ./prisma/migrations
-docker exec talkasauras-dev-bot pnpm db:migrate
-
-# Does NOT create a migration — just syncs the schema directly with the DB
-docker exec talkasauras-dev-bot pnpm db:push
+openssl rand -hex 32
+```
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-#### 5. Database Viewer
+#### `SECRET_KEY_2`
 
-To open Prisma Studio (available at `http://localhost:51212`):
+| Field | Value |
+|-------|-------|
+| **Description** | Used for encryption and decryption within the application |
+| **Format** | `<secret_key>` |
+| **Example** | `any_random_string_different_from_SECRET_KEY_1` |
+
+Generate with one of:
 
 ```bash
-docker exec talkasauras-dev-bot pnpm db:studio
+openssl rand -hex 32
 ```
-
-#### 6. Monitoring Logs
-
-If the server stops unexpectedly (fail-fast), check the logs to identify the missing environment variable or connection error:
-
 ```bash
-docker compose -f docker-compose.dev.yml logs -f
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ---
 
-#### Adding Dependencies
+### Admin Users
 
-To add a new package:
+#### `ADMINS`
 
-1. Install on your host machine:
-
-```bash
-pnpm install <package-name>
-```
-
-2. Rebuild the environment:
-
-```bash
-docker compose -f docker-compose.dev.yml down -v
-docker compose -f docker-compose.dev.yml down
-docker compose -f docker-compose.dev.yml build --no-cache
-docker compose -f docker-compose.dev.yml up
-```
+| Field | Value |
+|-------|-------|
+| **Description** | Telegram usernames of admins with access to the internal Telegram bot |
+| **Format** | `<username_1>\|<username_2>\|<username_3>` |
+| **Separator** | `\|` (pipe character) |
+| **Example** | `CypherBeing\|Admin2\|Admin3` |
 
 ---
 
-### Production Mode
+## Production `.env.production`
 
-In production, all services run behind **Nginx** for single-port access on port `8080` of the container. You can map this to any port on your host machine (e.g. `5004`).
+`.env.production` is a **superset** of `.env.development` — all development variables must be present here with the same names but values appropriate for the production environment.
 
-#### 1. Build
+### Additional Production-Only Variables
 
-```bash
-docker compose build --no-cache
-```
+#### `HTTP_USER`
 
-#### 2. Run
+| Field | Value |
+|-------|-------|
+| **Description** | Username for Redis Commander UI authentication in production |
+| **Format** | `<username>` |
+| **Example** | `admin` |
 
-```bash
-docker compose up
-```
+#### `HTTP_PASSWORD`
 
-#### Endpoints
+| Field | Value |
+|-------|-------|
+| **Description** | Password for Redis Commander UI authentication in production |
+| **Format** | `<password>` |
+| **Example** | `password` |
 
-| Service | URL |
-|---------|-----|
-| **Application** | `http://localhost:5004/app` |
-| **Redis Commander** | `http://localhost:5004/commander` |
-| **pgAdmin** | `http://localhost:5004/pgadmin` |
+#### `PGADMIN_DEFAULT_EMAIL`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Email address for pgAdmin authentication in production |
+| **Format** | `<email>` |
+| **Example** | `you@example.com` |
+
+#### `PGADMIN_DEFAULT_PASSWORD`
+
+| Field | Value |
+|-------|-------|
+| **Description** | Password for pgAdmin authentication in production |
+| **Format** | `<password>` |
+| **Example** | `password` |
