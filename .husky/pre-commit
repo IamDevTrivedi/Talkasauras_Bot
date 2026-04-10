@@ -1,0 +1,12 @@
+echo "[husky] Starting pre-commit checks..."
+echo "[husky] Running: pnpm run check"
+
+pnpm run check
+status=$?
+
+if [ $status -ne 0 ]; then
+	echo "[husky] Commit blocked: checks failed."
+	exit $status
+fi
+
+echo "[husky] Checks passed. Proceeding with commit."

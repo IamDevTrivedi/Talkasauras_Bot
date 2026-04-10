@@ -20,11 +20,32 @@ By this point, you should have all the necessary environment variables set up as
 |-------------|---------|
 | **Docker & Docker Compose** | [Install Guide](https://docs.docker.com/get-started/get-docker/) |
 | **Node.js & pnpm** | [Node.js Download](https://nodejs.org/en/download) |
+| **Git (for hooks)** | Required for Husky pre-commit checks |
 | **Configuration** | Ensure all `.env` files are populated |
 
 ---
 
 ### Development Mode
+
+#### 0. Install Dependencies and Git Hooks
+
+Install dependencies on your host machine. Husky is configured through the `prepare` script and automatically installs Git hooks during install.
+
+```bash
+pnpm install
+```
+
+If hooks are ever missing (for example after cloning with skipped scripts), run:
+
+```bash
+pnpm prepare
+```
+
+Pre-commit checks now run automatically before each commit using:
+
+```bash
+pnpm run check
+```
 
 #### 1. Fresh Build
 
