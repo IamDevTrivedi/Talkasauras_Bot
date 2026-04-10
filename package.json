@@ -1,9 +1,22 @@
 {
     "name": "talkasauras_bot",
-    "version": "0.0.1",
-    "description": "A telegram bot",
+    "version": "1.0.0",
+    "description": "A Telegram bot powered by Ollama LLM with real-time messaging, job queuing, and database persistence",
     "type": "module",
     "main": "./build/index.js",
+    "keywords": [
+        "telegram",
+        "bot",
+        "ollama",
+        "llm",
+        "ai",
+        "messaging"
+    ],
+    "author": "IamDevTrivedi",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/IamDevTrivedi/Talkasauras_Bot"
+    },
     "scripts": {
         "build": "tsc && tsc-alias",
         "dev": "cross-env NODE_ENV=development tsx watch --clear-screen=true --tsconfig tsconfig.json --watch src src/index.ts",
