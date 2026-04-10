@@ -74,6 +74,8 @@ services:
         env_file:
             - path: .env.production
               required: false
+        environment:
+            - SCRIPT_NAME=/talkasauras-bot-server/pgadmin
         volumes:
             - postgres-data:/var/lib/postgresql/18/docker
         healthcheck:
