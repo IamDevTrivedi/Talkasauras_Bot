@@ -57,17 +57,27 @@ docker compose -f docker-compose.dev.yml build --no-cache
 
 #### 2. Start Services
 
+By default, development mode starts all required services except local Ollama.
+
 ```bash
 docker compose -f docker-compose.dev.yml up
 ```
 
+To include the local Ollama container, enable the `local-ollama` profile:
+
+```bash
+docker compose -f docker-compose.dev.yml --profile local-ollama up
+```
+
 #### 3. Local Ollama Setup *(Optional)*
 
-If using the local Ollama container, pull your model:
+If using the local Ollama container (started with `--profile local-ollama`), pull your model:
 
 ```bash
 docker exec talkasauras-dev-ollama ollama pull gemma3:4b
 ```
+
+If you opt out of local Ollama, set `OLLAMA_HOST` (and `OLLAMA_API_KEY` if required by your provider) in `.env.development` to your external Ollama endpoint.
 
 > **Constraint:** Ensure the model you pull matches the one specified in your `.env.development` file (e.g. `gemma3:4b`). A mismatch will cause the server to fail to respond to requests due to a model-not-found error.
 >

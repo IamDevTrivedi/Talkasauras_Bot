@@ -69,6 +69,8 @@ services:
         image: ollama/ollama:latest
         container_name: talkasauras-dev-ollama
         restart: unless-stopped
+        profiles:
+            - local-ollama
         ports:
             - "5025:11434"
         volumes:

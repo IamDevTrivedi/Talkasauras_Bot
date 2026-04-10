@@ -41,6 +41,8 @@ Contains a single variable used by Prisma to connect to the database.
 Contains environment variables specific to development mode.
 
 > **Note:** `.env.development` is a subset of `.env.production` — all variables here must also be present in `.env.production`, typically with different values suited for production.
+>
+> **Docker profile note:** In development, local Ollama runs only when Docker Compose is started with `--profile local-ollama`. If you do not enable that profile, point `OLLAMA_HOST` to an external Ollama endpoint.
 
 ---
 
@@ -176,9 +178,9 @@ REDIS_PORT=6379
 
 ### Ollama
 
-You can use either a local Ollama instance spun up via `docker compose up`, or an external Ollama service. If using an external service, set the variables below accordingly.
+You can use either a local Ollama instance (started via `docker compose --profile local-ollama up`) or an external Ollama service. If using an external service, set the variables below accordingly.
 
-**Default values for local Docker Compose Ollama:**
+**Default values for local Docker Compose Ollama (`--profile local-ollama`):**
 
 ```env
 OLLAMA_API_KEY=any_bullshit_value_since_ollama_does_not_require_api_key_for_localhost
@@ -193,7 +195,7 @@ OLLAMA_MODEL_NAME=phi3:mini
 | **Description** | API key for Ollama, used to authenticate with the Ollama API |
 | **Format** | `<ollama_api_key>` |
 | **Example** | `qwertyuioplkjhgfdsazxcvbnm1234567890` |
-| **Note** | Any value works for localhost — Ollama does not require an API key locally |
+| **Note** | Local Ollama: any non-empty value works. External Ollama: use a real key if your provider requires one |
 | **Obtain from** | [Ollama](https://ollama.com/) |
 
 #### `OLLAMA_HOST`
@@ -202,7 +204,9 @@ OLLAMA_MODEL_NAME=phi3:mini
 |-------|-------|
 | **Description** | Host URL for the Ollama API |
 | **Format** | `<ollama_host>` |
-| **Example** | `http://ollama:11434` |
+| **Example (local profile enabled)** | `http://ollama:11434` |
+| **Example (external Ollama)** | `https://ollama.example.com` |
+| **Constraint** | Must be reachable from inside the `bot` container |
 
 #### `OLLAMA_MODEL_NAME`
 
