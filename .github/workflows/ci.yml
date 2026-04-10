@@ -1,0 +1,88 @@
+name: Deploy to EC2 on main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install root dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run lint check
+        run: pnpm run lint
+
+  prettier:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install root dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Prettier formatting check
+        run: pnpm run format:check
+
+  deploy:
+    if: vars.EC2_ALIVE == 'true'
+    runs-on: ubuntu-latest
+    needs: [lint, prettier]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: SSH and deploy with Docker Compose
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/my-projects/Talkasauras_Bot
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose down --remove-orphans
+            docker compose up -d --build
+            docker compose ps
+            for i in {1..10}; do
+              if curl -fs http://localhost:5004/app/api/v1/health; then
+                echo "Health check passed"
+                break
+              fi
+              echo "Waiting for service..."
+              sleep 5
+            done
+            if ! curl -fs http://localhost:5004/app/api/v1/health; then
+              echo "Health check failed"
+              docker compose logs --tail=200
+              exit 1
+            fi
+            echo "Deployment completed successfully on EC2"
