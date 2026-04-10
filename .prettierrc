@@ -10,5 +10,13 @@
     "bracketSameLine": false,
     "arrowParens": "always",
     "printWidth": 100,
-    "endOfLine": "lf"
+    "endOfLine": "lf",
+    "overrides": [
+        {
+            "files": ".github/workflows/*.{yml,yaml}",
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
 }
