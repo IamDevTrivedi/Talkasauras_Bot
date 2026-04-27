@@ -1,34 +1,12 @@
 name: talkasauras-dev
 
 services:
-    bot:
-        build:
-            context: .
-            dockerfile: Dockerfile.dev
-        container_name: talkasauras-dev-bot
-        restart: unless-stopped
-        ports:
-            - "5000:5000"
-            - "51212:51212"
-        environment:
-            - NODE_ENV=development
-        env_file:
-            - .env.development
-        volumes:
-            - .:/app
-            - /app/node_modules
-        depends_on:
-            postgres:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
-        sysctls:
-            - net.ipv6.conf.all.disable_ipv6=1
-
     redis:
         image: redis:8-alpine
         container_name: talkasauras-dev-redis
         restart: unless-stopped
+        ports:
+            - "5001:6379"
         volumes:
             - redis-data:/data
         healthcheck:
@@ -43,7 +21,7 @@ services:
         container_name: talkasauras-dev-redis-ui
         restart: unless-stopped
         ports:
-            - "8081:8081"
+            - "5002:8081"
         environment:
             - REDIS_HOSTS=local:redis:6379
         depends_on:
@@ -54,6 +32,8 @@ services:
         image: postgres:18-alpine
         container_name: talkasauras-dev-postgres
         restart: unless-stopped
+        ports:
+            - "5003:5432"
         env_file:
             - .env.development
         volumes:
@@ -72,7 +52,7 @@ services:
         profiles:
             - local-ollama
         ports:
-            - "5025:11434"
+            - "5005:11434"
         volumes:
             - ollama-data:/root/.ollama
 
