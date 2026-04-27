@@ -32,7 +32,7 @@
         "db:generate": "prisma generate",
         "db:push": "prisma db push",
         "db:migrate": "prisma migrate dev",
-        "db:migrate:deploy": "prisma migrate deploy",
+        "db:migrate:deploy": "NODE_ENV=production prisma migrate deploy",
         "db:studio": "prisma studio --browser none --port 5004",
         "db:seed": "tsx prisma/seed.ts",
         "db:reset": "prisma migrate reset",
