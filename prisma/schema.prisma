@@ -35,6 +35,9 @@ model User {
 
   createdAt  BigInt
   lastActive BigInt
+
+  messages  Message[]
+  reminders Reminder[]
 }
 
 model Message {
@@ -46,6 +49,8 @@ model Message {
 
   isTemporary Boolean @default(false)
   createdAt   BigInt
+
+  user User @relation(fields: [telegramIdHash], references: [telegramIdHash])
 }
 
 model Feedback {
@@ -58,11 +63,14 @@ model Feedback {
 model Reminder {
   id Int @id @default(autoincrement())
 
-  telegramIdEnc String
+  telegramIdEnc  String
+  telegramIdHash String
 
   message  String
   remindAt BigInt
   executed Boolean @default(false)
 
   createdAt BigInt
+
+  user User @relation(fields: [telegramIdHash], references: [telegramIdHash])
 }

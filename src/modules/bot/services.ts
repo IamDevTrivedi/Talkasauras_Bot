@@ -537,6 +537,7 @@ export const services = {
                         try {
                             const reminder = await prisma.reminder.create({
                                 data: {
+                                    telegramIdHash: telegramIdHash,
                                     telegramIdEnc: telegramIdEnc,
                                     message: encryptedMessage,
                                     remindAt: BigInt(scheduledDate.getTime()),
@@ -822,7 +823,6 @@ export const services = {
             bot.on("text", async (ctx) => {
                 try {
                     const telegramIdHash = ctx.state.telegramIdHash as string;
-
                     const { text: newMsg } = ctx.message;
 
                     const user = await prisma.user.findUnique({
@@ -832,6 +832,7 @@ export const services = {
                     });
 
                     if (!user) {
+                        logger.error(`User not found for telegramIdHash: ${telegramIdHash}`);
                         await ctx.reply("Sorry, something went wrong. Please try again later.");
                         return;
                     }
