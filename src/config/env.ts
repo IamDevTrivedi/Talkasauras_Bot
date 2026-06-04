@@ -2,31 +2,17 @@ import process from "node:process";
 import dotenv from "dotenv";
 import fs from "fs";
 
-const ENV_FILES = {
-    development: "./.env.development",
-    production: "./.env.production",
-} as const;
-
 const NODE_ENV = process.env.NODE_ENV as "development" | "production";
 
 const loadEnvironmentConfig = (): void => {
-    const envPath = ENV_FILES[NODE_ENV];
-
     if (NODE_ENV === "development") {
-        if (!fs.existsSync(envPath)) {
-            console.error(`Error: ${envPath} not found.`);
+        if (!fs.existsSync("./.env.development")) {
+            console.error("Error: ./.env.development not found.");
             process.exit(1);
         }
-        dotenv.config({ path: envPath });
+        dotenv.config({ path: "./.env.development" });
     } else {
-        if (fs.existsSync(envPath)) {
-            dotenv.config({ path: envPath });
-        } else {
-            console.warn(
-                `Warning: ${envPath} not found. Falling back to default environment variables.`
-            );
-            dotenv.config();
-        }
+        dotenv.config();
     }
 };
 

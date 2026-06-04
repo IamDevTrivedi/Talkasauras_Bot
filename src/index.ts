@@ -1,15 +1,15 @@
 import express from "express";
+import dns from "dns";
 import { checkEnv } from "@/config/checkEnv.js";
 import { connectDB } from "@/db/prisma.js";
 import { connectRedis } from "@/db/redis.js";
 import { shutdownManager } from "@/shutdown.js";
 import { env } from "@/config/env.js";
 import { logger } from "@/utils/logger.js";
-import { services as botService } from "@/modules/bot/services.js";
-import { services as adminServices } from "@/modules/admin/services.js";
 import { connectOllama } from "@/config/ollama.js";
 
 const init = async () => {
+    dns.setDefaultResultOrder("ipv4first");
     checkEnv();
     await connectDB();
     await connectRedis();
@@ -30,6 +30,9 @@ const init = async () => {
         logger.info(`Mode: ${env.NODE_ENV}`);
         logger.info(`Server is running on port ${env.PORT}`);
     });
+
+    const { services: botService } = await import("@/modules/bot/services.js");
+    const { services: adminServices } = await import("@/modules/admin/services.js");
 
     await botService.prepare();
     await botService.launch();

@@ -3,12 +3,10 @@ import { defineConfig } from "prisma/config";
 
 const env = process.env["NODE_ENV"] ?? "development";
 
-const result = dotenv.config({
-    path: `.env.${env}`,
-});
-
-if (result.error) {
-    throw result.error;
+if (env === "development") {
+    dotenv.config({ path: "./.env.development" });
+} else {
+    dotenv.config();
 }
 
 export default defineConfig({
