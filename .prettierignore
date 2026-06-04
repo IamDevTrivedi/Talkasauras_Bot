@@ -41,3 +41,4 @@ coverage
 # Docs file
 docs
 *.md
+.agents
