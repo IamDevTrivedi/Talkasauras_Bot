@@ -110,6 +110,12 @@ jobs:
             cd $PROJECT_DIR
             git fetch origin main
             git reset --hard origin/main
+
+            # Save current image as rollback candidate
+            docker tag ghcr.io/iamdevtrivedi/talkasauras_bot:latest \
+              ghcr.io/iamdevtrivedi/talkasauras_bot:rollback-candidate 2>/dev/null || \
+              echo "No previous image to save (first deploy)"
+
             docker compose pull
             docker compose run --rm bot pnpm db:migrate:deploy
             docker compose down --remove-orphans
@@ -117,13 +123,37 @@ jobs:
 
             for i in $(seq 1 $MAX_RETRIES); do
               if curl -fs http://localhost:5004/api/v1/health; then
-                echo "Health check passed"
+                echo "Health check passed — deploy successful"
+                docker rmi ghcr.io/iamdevtrivedi/talkasauras_bot:rollback-candidate 2>/dev/null || true
                 exit 0
               fi
               echo "Waiting for service... attempt $i/$MAX_RETRIES"
               sleep 5
             done
 
-            echo "Health check failed after $MAX_RETRIES attempts"
-            docker compose logs --tail=50 bot
-            exit 1
+            echo "Health check failed after $MAX_RETRIES attempts — rolling back"
+
+            if docker image inspect \
+              ghcr.io/iamdevtrivedi/talkasauras_bot:rollback-candidate >/dev/null 2>&1; then
+              docker tag ghcr.io/iamdevtrivedi/talkasauras_bot:rollback-candidate \
+                ghcr.io/iamdevtrivedi/talkasauras_bot:latest
+              docker rmi ghcr.io/iamdevtrivedi/talkasauras_bot:rollback-candidate 2>/dev/null || true
+              docker compose down --remove-orphans
+              docker compose up -d
+
+              for i in $(seq 1 $MAX_RETRIES); do
+                if curl -fs http://localhost:5004/api/v1/health; then
+                  echo "Rollback successful — service restored to previous version"
+                  exit 1
+                fi
+                sleep 5
+              done
+
+              echo "CRITICAL: Rollback also failed — service is down"
+              docker compose logs --tail=50 bot
+              exit 2
+            else
+              echo "No rollback candidate available (first deploy)"
+              docker compose logs --tail=50 bot
+              exit 1
+            fi
