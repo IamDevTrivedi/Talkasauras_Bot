@@ -2,6 +2,7 @@ name: talkasauras-prod
 
 services:
     bot:
+        image: ghcr.io/iamdevtrivedi/talkasauras_bot:latest
         build:
             context: .
             dockerfile: Dockerfile
