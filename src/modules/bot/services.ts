@@ -160,7 +160,7 @@ export const services = {
                         `Name: Dev Trivedi\n` +
                         `GitHub: https://github.com/IamDevTrivedi/\n` +
                         `LinkedIn: https://www.linkedin.com/in/contact-devtrivedi/\n` +
-                        `Portfolio: https://www.dev-trivedi.me/`
+                        `Portfolio: https://www.trivedi.dev/`
                 );
             });
 
