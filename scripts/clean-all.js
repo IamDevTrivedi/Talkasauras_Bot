@@ -1,11 +1,9 @@
-// scripts/clean-all.js: standalone script to clean build and node_modules directories
+import { rmSync, existsSync } from "fs";
 
-import fs from "fs";
+const dirs = ["./dist", "./node_modules"];
 
-const dirs = ["./build", "./node_modules"];
-
-dirs.forEach((dir) => {
-    if (fs.existsSync(dir)) {
-        fs.rmSync(dir, { recursive: true, force: true });
+for (const dir of dirs) {
+    if (existsSync(dir)) {
+        rmSync(dir, { recursive: true, force: true });
     }
-});
+}

@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "A Telegram bot powered by Ollama LLM with real-time messaging, job queuing, and database persistence",
     "type": "module",
-    "main": "./build/index.js",
+    "main": "./dist/index.js",
     "keywords": [
         "telegram",
         "bot",
@@ -51,7 +51,6 @@
         "ollama": "^0.6.3",
         "pino": "^10.3.1",
         "pino-pretty": "^13.1.3",
-        "prettier": "3.8.1",
         "redis": "^5.10.0",
         "telegraf": "^4.16.3",
         "zod": "^4.3.6"
@@ -62,6 +61,7 @@
         "@types/node": "^25.2.3",
         "eslint": "^10.0.0",
         "husky": "^9.1.7",
+        "prettier": "3.8.1",
         "prisma": "^7.4.0",
         "tsc-alias": "^1.8.16",
         "tsx": "^4.21.0",
