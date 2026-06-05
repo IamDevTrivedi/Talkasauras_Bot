@@ -9,8 +9,6 @@ import { logger } from "@/utils/logger.js";
 import { connectOllama } from "@/config/ollama.js";
 
 const init = async () => {
-    throw new Error("Intentional Crash for Testing");
-
     dns.setDefaultResultOrder("ipv4first");
     checkEnv();
     await connectDB();
