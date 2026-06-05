@@ -71,14 +71,12 @@ jobs:
 
       - name: SSH and deploy with Docker Compose
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          PROJECT_DIR: /projects/Talkasauras_Bot
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            cd $PROJECT_DIR
+            cd /projects/Talkasauras_Bot
             git fetch origin main
             git reset --hard origin/main
             docker compose down --remove-orphans
