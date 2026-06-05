@@ -23,20 +23,9 @@ A Telegram bot powered by Ollama LLM with real-time messaging, job queuing, and 
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    U[User] --> TG1[Telegram]
-    A[Admin] --> TG2[Telegram]
-    TG1 --> MB[Telegraf<br/>Main Bot]
-    TG2 --> AB[Telegraf<br/>Admin Bot]
-    MB --> OLL[Ollama LLM]
-    AB --> EXP[Express API]
-    MB --> BQ[BullMQ<br/>Redis]
-    AB --> BQ
-    MB --> PG[PostgreSQL<br/>Prisma]
-    AB --> PG
-    BQ --> PG
-```
+<div align="center">
+  <img src="docs/diagrams/talkasauras-architecture.png" alt="Architecture Diagram" width="400"/>
+</div>
 
 | Layer | Technology |
 |-------|-----------|
