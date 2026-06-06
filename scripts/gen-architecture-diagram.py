@@ -9,7 +9,7 @@ from diagrams.onprem.inmemory import Redis
 from diagrams.aws.database import RDSPostgresqlInstance
 from diagrams.programming.language import NodeJS
 from diagrams.aws.robotics import Robomaker   
-from diagrams.aws.ml import Bedrock            
+from diagrams.aws.ml import Bedrock    
 
 OUT_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -54,7 +54,7 @@ def gen(dark: bool):
         "dpi": "150",
         "label": "Talkasauras Bot Architecture\n\n",
         "labelloc": "t",
-        "rankdir": "TB",     
+        "rankdir": "LR",     
         "compound": "true",
         "splines": "ortho",  
     }
@@ -92,7 +92,7 @@ def gen(dark: bool):
         "",
         filename=out_path,
         show=False,
-        direction="TB",
+        direction="LR",
         graph_attr=graph_attr,
         node_attr=node_attr,
         edge_attr=edge_attr,
@@ -113,7 +113,7 @@ def gen(dark: bool):
             api = NodeJS("Express API")
 
         with Cluster("AI / LLM", graph_attr=cattr("cyan")):
-            ollama = Bedrock("Ollama LLM")               
+            ollama = Bedrock("Ollama Cloud")      
 
         with Cluster("Data Layer", graph_attr=cattr("yellow")):
             redis = Redis("Redis")
@@ -123,12 +123,13 @@ def gen(dark: bool):
 
         tg >> e >> main_bot
         tg >> e >> admin_bot
-
-        main_bot >> e >> ollama
-
+        
         main_bot >> e >> redis
         main_bot >> e >> db
         admin_bot >> e >> db
+        admin_bot >> e >> redis
+        
+        main_bot >> e >> ollama
 
 gen(dark=False)
 gen(dark=True)
