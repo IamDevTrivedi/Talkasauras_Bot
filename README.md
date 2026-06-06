@@ -23,19 +23,27 @@ A Telegram bot powered by Ollama LLM with real-time messaging, job queuing, and 
 
 ## Architecture
 
-<div align="center">
+<div style="margin: 20px 0;">
   <img src="docs/diagrams/talkasauras-architecture.png" alt="Architecture Diagram" width="400"/>
 </div>
 
-| Layer | Technology |
-|-------|-----------|
-| HTTP Server | Express 5 |
-| Telegram Bots | Telegraf 4 (user + admin) |
-| LLM | Ollama (local or cloud) |
-| Job Queue | BullMQ + Redis |
-| Database | PostgreSQL via Prisma |
-| Encryption | AES-256-GCM / HMAC-SHA256 |
-| Logging | Pino structured logger |
+Users interact via Telegram, routed through Telegraf bots to an Express API server. Ollama handles LLM inference, Redis powers the BullMQ job queue, and PostgreSQL persists all data with AES-256-GCM encryption at rest.
+
+## Database Schema
+
+<div style="margin: 20px 0;">
+  <img src="docs/diagrams/er-diagram.png" alt="Database Schema ER Diagram" width="500"/>
+</div>
+
+Four tables store the application data: User, Message, Feedback, and Reminder, with User having one-to-many relationships to Message and Reminder.
+
+## CI/CD Pipeline
+
+<div style="margin: 20px 0;">
+  <img src="docs/diagrams/talkasauras-cicd.png" alt="CI/CD Pipeline Diagram" width="1000"/>
+</div>
+
+On every push to main, GitHub Actions runs lint and format checks, builds a Docker image, pushes to GHCR, and deploys to EC2 via Docker Compose with automatic rollback on health check failure.
 
 ## Tech Stack
 
