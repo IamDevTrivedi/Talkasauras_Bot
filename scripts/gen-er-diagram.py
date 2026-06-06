@@ -3,10 +3,9 @@
 
 import os
 import re
-import subprocess
-import tempfile
 
 from eralchemy2.main import all_to_intermediary, _intermediary_to_dot
+from pygraphviz.agraph import AGraph
 
 OUT_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -53,11 +52,8 @@ def gen(dark: bool):
     themed = apply_theme(dot_source, bg, fc, ec)
 
     png_path = os.path.join(OUT_DIR, f"{DIAGRAM_NAME}{suffix}.png")
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".dot", delete=False) as f:
-        f.write(themed)
-        dot_path = f.name
-    subprocess.run(["dot", "-Tpng", "-o", png_path, dot_path], check=True)
-    os.remove(dot_path)
+    graph = AGraph(string=themed)
+    graph.draw(png_path, prog="dot", format="png")
     print(f"  Generated {png_path}")
 
     try:
