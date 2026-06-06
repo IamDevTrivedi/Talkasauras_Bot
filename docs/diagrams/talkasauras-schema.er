@@ -1,0 +1,36 @@
+[User]
+    *telegramIdHash {label:"String (PK)"}
+    telegramIdEnc {label:"String"}
+    customInstructions {label:"String?"}
+    writingStyle {label:"WritingStyle"}
+    model {label:"Model"}
+    temporaryOn {label:"Boolean"}
+    subscribed {label:"Boolean"}
+    createdAt {label:"BigInt"}
+    lastActive {label:"BigInt"}
+
+[Message]
+    *id {label:"UUID (PK)"}
+    telegramIdHash {label:"String (FK)"}
+    content {label:"String"}
+    role {label:"Role"}
+    isTemporary {label:"Boolean"}
+    createdAt {label:"BigInt"}
+
+[Feedback]
+    *id {label:"Int (PK)"}
+    feedback {label:"String"}
+    reviewed {label:"Boolean"}
+    createdAt {label:"BigInt"}
+
+[Reminder]
+    *id {label:"Int (PK)"}
+    telegramIdEnc {label:"String"}
+    telegramIdHash {label:"String (FK)"}
+    message {label:"String"}
+    remindAt {label:"BigInt"}
+    executed {label:"Boolean"}
+    createdAt {label:"BigInt"}
+
+User 1--* Message
+User 1--* Reminder
