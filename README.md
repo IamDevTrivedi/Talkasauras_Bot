@@ -43,7 +43,7 @@ Four tables store the application data: User, Message, Feedback, and Reminder, w
   <img src="docs/diagrams/talkasauras-cicd.png" alt="CI/CD Pipeline Diagram" width="1000"/>
 </div>
 
-On every push to main, GitHub Actions runs lint and format checks, builds a Docker image, pushes to GHCR, and deploys to EC2 via Docker Compose with automatic rollback on health check failure.
+On every push to main, GitHub Actions runs lint and format checks, builds a Docker image, pushes to GHCR, and deploys to your VPS via Docker Compose with automatic rollback on health check failure.
 
 ## Tech Stack
 
