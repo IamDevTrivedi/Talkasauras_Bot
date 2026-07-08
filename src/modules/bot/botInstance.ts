@@ -1,7 +1,6 @@
-// bot.ts
 import https from "https";
 import { Telegraf } from "telegraf";
-import { env } from "./env.js";
+import { env } from "@/config/env.js";
 
 const agent = new https.Agent({ family: 4, keepAlive: true });
 

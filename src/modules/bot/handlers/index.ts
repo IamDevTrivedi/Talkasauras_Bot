@@ -1,0 +1,10 @@
+export { registerStart } from "./start.js";
+export { registerInfo } from "./info.js";
+export { registerFeedback } from "./feedback.js";
+export { registerClear } from "./clear.js";
+export { registerTemporary } from "./temporary.js";
+export { registerInstructions } from "./instructions.js";
+export { registerRemindMe } from "./remindMe.js";
+export { registerWritingStyle } from "./writingStyle.js";
+export { registerPhoto } from "./photo.js";
+export { registerText } from "./text.js";

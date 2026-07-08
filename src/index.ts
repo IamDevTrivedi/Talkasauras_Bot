@@ -31,8 +31,8 @@ const init = async () => {
         logger.info(`Server is running on port ${env.PORT}`);
     });
 
-    const { services: botService } = await import("@/modules/bot/services.js");
-    const { services: adminServices } = await import("@/modules/admin/services.js");
+    const { services: botService } = await import("@/modules/bot/index.js");
+    const { services: adminServices } = await import("@/modules/admin/index.js");
 
     await botService.prepare();
     await botService.launch();

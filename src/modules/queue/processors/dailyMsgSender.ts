@@ -1,4 +1,4 @@
-import { bot } from "@/config/bot.js";
+import { bot } from "@/modules/bot/botInstance.js";
 import { env } from "@/config/env.js";
 import { decrypt } from "@/utils/crypto.js";
 import { logger } from "@/utils/logger.js";

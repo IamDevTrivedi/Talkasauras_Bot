@@ -1,8 +1,8 @@
 import { logger } from "@/utils/logger.js";
 import { disconnectDB } from "@/db/prisma.js";
 import { disconnectRedis } from "@/db/redis.js";
-import { bot } from "@/config/bot.js";
-import { adminBot } from "@/config/adminBot.js";
+import { bot } from "@/modules/bot/botInstance.js";
+import { adminBot } from "@/modules/admin/botInstance.js";
 
 let isShuttingDown = false;
 
