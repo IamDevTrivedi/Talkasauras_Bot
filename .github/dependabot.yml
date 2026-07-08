@@ -1,44 +1,35 @@
 version: 2
 updates:
-    - package-ecosystem: "npm"
-      directory: "/"
+    - package-ecosystem: npm
+      directory: /
       schedule:
-          interval: "weekly"
-          day: "monday"
+          interval: weekly
+          day: monday
           time: "06:00"
-          timezone: "Asia/Kolkata"
+          timezone: Asia/Kolkata
       open-pull-requests-limit: 10
       labels:
-          - "dependencies"
+          - dependencies
       commit-message:
-          prefix: "deps"
-          prefix-development: "deps-dev"
+          prefix: deps
       groups:
-          production-dependencies:
-              dependency-type: "production"
-          development-dependencies:
-              dependency-type: "development"
+          root-npm-minor-and-patch:
+              patterns:
+                  - "*"
+              update-types:
+                  - minor
+                  - patch
 
-    - package-ecosystem: "github-actions"
-      directory: "/"
+    - package-ecosystem: github-actions
+      directory: /
       schedule:
-          interval: "weekly"
-          day: "monday"
+          interval: weekly
+          day: monday
           time: "06:30"
-          timezone: "Asia/Kolkata"
+          timezone: Asia/Kolkata
       open-pull-requests-limit: 5
       labels:
-          - "dependencies"
-          - "github-actions"
-
-    - package-ecosystem: "docker"
-      directory: "/"
-      schedule:
-          interval: "weekly"
-          day: "monday"
-          time: "07:00"
-          timezone: "Asia/Kolkata"
-      open-pull-requests-limit: 5
-      labels:
-          - "dependencies"
-          - "docker"
+          - dependencies
+          - ci
+      commit-message:
+          prefix: ci
