@@ -3,12 +3,11 @@ import { bot } from "../botInstance.js";
 const registerStart = () => {
     bot.start((ctx) => {
         const name = ctx.from?.first_name || "there";
-
         ctx.reply(
-            `Welcome, ${name}!\n\n` +
-                `I am Talkasauras Bot, your AI-powered chat companion on Telegram. ` +
-                `I can carry on natural conversations, remember context, and adapt to your preferred style.\n\n` +
-                `Feel free to type anything to begin chatting, or send /help to explore all available commands.`
+            `Welcome, ${name}! 👋\n\n` +
+                `I'm Talkasauras — your AI-powered chat companion, right here on Telegram. ` +
+                `I can hold natural conversations, remember what we've talked about, and adapt to whatever style suits you best.\n\n` +
+                `Just type anything to start chatting, or send /help to see everything I can do.`
         );
     });
 };
