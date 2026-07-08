@@ -68,7 +68,7 @@ jobs:
 
   build-and-push:
     needs: [lint, prettier]
-    if: vars.DEPLOY_TO_VPS == 'true'
+    if: vars.DEPLOY_TO_VPS != 'false'
     runs-on: ubuntu-latest
     permissions:
       contents: read
