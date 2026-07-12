@@ -43,7 +43,7 @@
     "dependencies": {
         "@prisma/adapter-pg": "^7.4.0",
         "@prisma/client": "^7.4.0",
-        "bullmq": "^5.69.2",
+        "bullmq": "^5.79.3",
         "chrono-node": "^2.9.0",
         "cross-env": "^10.1.0",
         "dotenv": "^16.6.1",
@@ -60,12 +60,12 @@
         "@eslint/js": "^10.0.1",
         "@types/express": "^5.0.6",
         "@types/node": "^25.2.3",
-        "eslint": "^10.0.0",
+        "eslint": "^10.6.0",
         "husky": "^9.1.7",
-        "prettier": "3.8.1",
-        "tsc-alias": "^1.8.16",
-        "tsx": "^4.21.0",
+        "prettier": "3.9.4",
+        "tsc-alias": "^1.9.0",
+        "tsx": "^4.23.0",
         "typescript": "^5.9.3",
-        "typescript-eslint": "^8.55.0"
+        "typescript-eslint": "^8.63.0"
     }
 }
