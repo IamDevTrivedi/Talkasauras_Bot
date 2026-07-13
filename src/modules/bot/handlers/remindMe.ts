@@ -1,7 +1,4 @@
 import { bot } from "../botInstance.js";
-import { env } from "@/config/env.js";
-import { prisma } from "@/db/prisma.js";
-import { encrypt } from "@/utils/crypto.js";
 import { logger } from "@/utils/logger.js";
 import { createReminder } from "../services/reminder.js";
 import * as chrono from "chrono-node";
@@ -130,24 +127,8 @@ const registerRemindMe = () => {
 
                 const telegramIdHash = ctx.state.telegramIdHash as string;
 
-                const user = await prisma.user.findUnique({
-                    where: { telegramIdHash },
-                });
-
-                if (!user) {
-                    await ctx.reply("Sorry, something went wrong. Please try again later.");
-                    return;
-                }
-
-                const { id } = ctx.from!;
-
-                const telegramIdEnc = encrypt({
-                    key: env.KEYS.SECRET_KEY_2,
-                    data: id.toString(),
-                });
-
                 try {
-                    await createReminder(telegramIdHash, telegramIdEnc, noteText, scheduledDate);
+                    await createReminder(telegramIdHash, noteText, scheduledDate);
 
                     const formattedDate = scheduledDate.toLocaleString("en-US", {
                         weekday: "long",

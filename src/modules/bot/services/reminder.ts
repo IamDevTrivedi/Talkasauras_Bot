@@ -3,12 +3,7 @@ import { encrypt } from "@/utils/crypto.js";
 import { env } from "@/config/env.js";
 import { reminderQueue, QueueNames } from "../../queue/index.js";
 
-const createReminder = async (
-    telegramIdHash: string,
-    telegramIdEnc: string,
-    noteText: string,
-    scheduledDate: Date
-) => {
+const createReminder = async (telegramIdHash: string, noteText: string, scheduledDate: Date) => {
     const encryptedMessage = encrypt({
         key: env.KEYS.SECRET_KEY_2,
         data: noteText,
@@ -19,7 +14,6 @@ const createReminder = async (
     const reminder = await prisma.reminder.create({
         data: {
             telegramIdHash,
-            telegramIdEnc,
             message: encryptedMessage,
             remindAt: BigInt(scheduledDate.getTime()),
             createdAt: BigInt(Date.now()),

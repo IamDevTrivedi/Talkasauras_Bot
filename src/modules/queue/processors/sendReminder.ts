@@ -13,6 +13,7 @@ export const sendReminder = async (job: Job<SendReminderJobData>) => {
     try {
         const reminder = await prisma.reminder.findUnique({
             where: { id: job.data.reminderId },
+            include: { user: true },
         });
 
         if (!reminder) {
@@ -26,7 +27,7 @@ export const sendReminder = async (job: Job<SendReminderJobData>) => {
         }
 
         const telegramId = decrypt({
-            data: reminder.telegramIdEnc,
+            data: reminder.user.telegramIdEnc,
             key: env.KEYS.SECRET_KEY_2,
         });
 

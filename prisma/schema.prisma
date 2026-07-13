@@ -63,7 +63,6 @@ model Feedback {
 model Reminder {
   id Int @id @default(autoincrement())
 
-  telegramIdEnc  String
   telegramIdHash String
 
   message  String
