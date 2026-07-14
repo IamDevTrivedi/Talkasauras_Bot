@@ -1,0 +1,45 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "default_agent": "talkasauras",
+    "agent": {
+        "talkasauras": {
+            "description": "Primary agent specialized for Talkasauras Bot development — knows the full stack, conventions, and architecture",
+            "mode": "primary",
+            "prompt": "{file:./AGENTS.md}",
+            "permission": {
+                "edit": "allow",
+                "bash": "allow",
+                "read": "allow"
+            }
+        },
+        "review": {
+            "description": "Reviews code for Talkasauras-specific best practices, security, and performance",
+            "mode": "subagent",
+            "permission": {
+                "edit": "deny",
+                "bash": "deny"
+            }
+        }
+    },
+    "instructions": ["AGENTS.md", "docs/SETUP.md"],
+    "references": {
+        "docs": {
+            "path": "docs",
+            "description": "Use for project architecture, setup guides, and design decisions"
+        }
+    },
+    "command": {
+        "check": {
+            "template": "Run pnpm check and fix any issues",
+            "description": "Run lint and format check"
+        },
+        "build": {
+            "template": "Build with `pnpm build`",
+            "description": "Compile TypeScript to /dist/"
+        },
+        "db-migrate": {
+            "template": "Create and apply a new Prisma migration with `pnpm db:migrate` and update the Prisma client with `pnpm db:generate`",
+            "description": "Create and apply a new database migration"
+        }
+    }
+}
