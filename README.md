@@ -65,35 +65,35 @@ See [Setup Guide](docs/SETUP.md) for complete instructions covering:
 
 ### User Commands
 
-| Command | Description |
-|---------|-------------|
-| `/start` | Welcome message and introduction |
-| `/help` | Display this list of commands |
-| `/about` | Learn more about Talkasauras Bot |
-| `/contact` | View the developer's contact details |
-| `/feedback` | Share your valued feedback |
-| `/remindme` | Schedule a reminder for a future date and time |
-| `/clear` | Clear your entire conversation history |
-| `/current_mode` | Check your current chat mode |
-| `/temporary_on` | Enable temporary chat mode |
-| `/temporary_off` | Disable temporary mode and delete temp messages |
-| `/custom_instructions` | Set personalized instructions for the bot |
-| `/clear_instructions` | Clear your custom instructions |
-| `/writing_style` | Choose your preferred writing style |
-| `/subscribe` | Re-enable daily messages if you've unsubscribed |
+| Command                | Description                                     |
+| ---------------------- | ----------------------------------------------- |
+| `/start`               | Welcome message and introduction                |
+| `/help`                | Display this list of commands                   |
+| `/about`               | Learn more about Talkasauras Bot                |
+| `/contact`             | View the developer's contact details            |
+| `/feedback`            | Share your valued feedback                      |
+| `/remindme`            | Schedule a reminder for a future date and time  |
+| `/clear`               | Clear your entire conversation history          |
+| `/current_mode`        | Check your current chat mode                    |
+| `/temporary_on`        | Enable temporary chat mode                      |
+| `/temporary_off`       | Disable temporary mode and delete temp messages |
+| `/custom_instructions` | Set personalized instructions for the bot       |
+| `/clear_instructions`  | Clear your custom instructions                  |
+| `/writing_style`       | Choose your preferred writing style             |
+| `/subscribe`           | Re-enable daily messages if you've unsubscribed |
 
 ### Admin Commands
 
-| Command | Description |
-|---------|-------------|
-| `/start` | Welcome message with available commands |
-| `/help` | Display command help |
-| `/broadcast [subscribed\|all\|active24h]` | Start targeted broadcast flow |
-| `/feedbacks [limit]` | Review latest unreviewed feedback |
-| `/analytics` | View product analytics |
-| `/status` | View runtime and queue status |
-| `/whoami` | Show your Telegram identity details |
-| `/cancel` | Cancel pending admin flow |
+| Command                                   | Description                             |
+| ----------------------------------------- | --------------------------------------- |
+| `/start`                                  | Welcome message with available commands |
+| `/help`                                   | Display command help                    |
+| `/broadcast [subscribed\|all\|active24h]` | Start targeted broadcast flow           |
+| `/feedbacks [limit]`                      | Review latest unreviewed feedback       |
+| `/analytics`                              | View product analytics                  |
+| `/status`                                 | View runtime and queue status           |
+| `/whoami`                                 | Show your Telegram identity details     |
+| `/cancel`                                 | Cancel pending admin flow               |
 
 ## License
 

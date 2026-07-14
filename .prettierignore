@@ -39,6 +39,4 @@ coverage
 *.min.css
 
 # Docs file
-docs
-*.md
 .agents
