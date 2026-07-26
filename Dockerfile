@@ -4,22 +4,21 @@ RUN corepack enable pnpm
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
-RUN pnpm run build
 RUN pnpm db:generate
+RUN pnpm run build
 
 # ─── Production Stage ───────────────────────────────────────
 
-FROM node:24-alpine
+FROM node:24-alpine AS production
 
 RUN corepack enable pnpm
-ENV NODE_ENV=production
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod  --frozen-lockfile --ignore-scripts
 
 COPY --from=builder /app/dist ./dist
 COPY prisma/ ./prisma
