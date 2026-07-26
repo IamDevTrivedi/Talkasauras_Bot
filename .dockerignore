@@ -14,6 +14,23 @@ yarn-error.log
 .env.*.local
 .env.*
 
+# Project documentation & meta
+docs/
+scripts/
+.github/
+.husky/
+eslint.config.mjs
+.prettierrc
+.prettierignore
+.editorconfig
+AGENTS.md
+README.md
+LICENSE
+opencode.json
+
+# Prisma seed (not needed at runtime)
+prisma/seed.ts
+
 # IDE
 .vscode
 .idea
