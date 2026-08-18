@@ -11,7 +11,7 @@ services:
         ports:
             - "5004:5000"
         env_file:
-            - .env
+            - .env.production
         depends_on:
             redis:
                 condition: service_healthy

@@ -20,7 +20,7 @@
     "scripts": {
         "build": "bun build ./src/index.ts --target=bun --outdir=dist --sourcemap=external",
         "dev": "NODE_ENV=development bun --watch src/index.ts",
-        "start": "NODE_ENV=production bun src/index.ts",
+        "start": "NODE_ENV=production bun dist/index.js",
         "clean:all": "bun scripts/clean-all.js",
         "install:all": "bun scripts/install-all.js",
         "reset:all": "bun scripts/reset-all.js",
@@ -33,7 +33,6 @@
         "db:push": "prisma db push",
         "db:migrate": "prisma migrate dev",
         "db:migrate:deploy": "NODE_ENV=production prisma migrate deploy",
-        "db:studio": "prisma studio --browser none --port 5004",
         "db:reset": "prisma migrate reset",
         "prepare": "husky"
     },
