@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install all dependencies (frozen lockfile for reproducibility)
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --ignore-scripts
 
 # Copy only what the build needs
 COPY tsconfig.json ./
@@ -26,7 +26,7 @@ WORKDIR /app
 
 # Install only production dependencies
 COPY package.json bun.lock ./
-RUN bun install --production
+RUN bun install --production --ignore-scripts
 
 # Copy build output from builder
 COPY --from=builder /app/dist ./dist
