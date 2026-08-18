@@ -8,11 +8,21 @@ const registerRateLimiter = () => {
             const telegramIdHash = ctx.state.telegramIdHash as string;
             const rateLimitKey = `ratelimit:${telegramIdHash}`;
 
-            const current = await redisClient.incr(rateLimitKey);
+            const now = Date.now();
+            const windowStart = now - RATE_LIMIT_WINDOW * 1000;
+            const member = `${now}:${Math.random().toString(36).slice(2)}`;
 
-            if (current === 1) {
-                await redisClient.expire(rateLimitKey, RATE_LIMIT_WINDOW);
-            }
+            // Add current request timestamp to sorted set
+            await redisClient.zAdd(rateLimitKey, { score: now, value: member });
+
+            // Remove requests older than the sliding window
+            await redisClient.zRemRangeByScore(rateLimitKey, "-inf", windowStart);
+
+            // Count remaining requests in the current window
+            const current = await redisClient.zCard(rateLimitKey);
+
+            // Keep the key alive for the window duration
+            await redisClient.expire(rateLimitKey, RATE_LIMIT_WINDOW);
 
             if (current > RATE_LIMIT_MAX) {
                 await ctx.reply(
