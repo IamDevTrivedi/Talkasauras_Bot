@@ -1,27 +1,12 @@
 import process from "node:process";
 import dotenv from "dotenv";
-import fs from "fs";
 
-const NODE_ENV = process.env.NODE_ENV as "development" | "production";
-
-const loadEnvironmentConfig = (): void => {
-    if (NODE_ENV === "development") {
-        if (!fs.existsSync("./.env.development")) {
-            console.error("Error: ./.env.development not found.");
-            process.exit(1);
-        }
-        dotenv.config({ path: "./.env.development" });
-    } else {
-        dotenv.config();
-    }
-};
-
-loadEnvironmentConfig();
+dotenv.config();
 
 export const env = {
-    NODE_ENV,
-    isProduction: NODE_ENV === "production",
-    isDevelopment: NODE_ENV === "development",
+    NODE_ENV: process.env.NODE_ENV as "development" | "production",
+    isProduction: process.env.NODE_ENV === "production",
+    isDevelopment: process.env.NODE_ENV === "development",
 
     PORT: Number(process.env.PORT),
 

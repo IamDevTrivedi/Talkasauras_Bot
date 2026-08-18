@@ -10,15 +10,13 @@ services:
         restart: unless-stopped
         ports:
             - "5004:5000"
-        environment:
-            - NODE_ENV=production
         env_file:
-            - .env.production
+            - .env
         depends_on:
             redis:
                 condition: service_healthy
         sysctls:
-            - net.ipv6.conf.all.disable_ipv6=1 # Disable IPv6 (Intentionally added)
+            - net.ipv6.conf.all.disable_ipv6=1
 
     redis:
         image: redis:8-alpine
@@ -33,5 +31,23 @@ services:
             retries: 5
             start_period: 5s
 
+    ollama:
+        image: ollama/ollama:latest
+        container_name: talkasauras-prod-ollama
+        restart: unless-stopped
+        profiles:
+            - local-ollama
+        ports:
+            - "5005:11434"
+        volumes:
+            - ollama-data:/root/.ollama
+        healthcheck:
+            test: ["CMD-SHELL", "curl -f http://localhost:11434 || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 15s
+
 volumes:
     redis-data:
+    ollama-data:

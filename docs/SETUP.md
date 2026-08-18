@@ -1,366 +1,402 @@
 # Setup Guide
 
-This guide walks you through setting up the Talkasauras Bot for local development or production deployment.
+This guide walks you through getting **Talkasauras Bot** running on your own machine, from a clean checkout to a working bot — in both development and production.
+
+By the end you will have:
+
+- A running PostgreSQL, Redis, and (optionally) Ollama stack.
+- A correctly configured `.env` file with all required secrets.
+- The bot compiled, migrated, and answering on Telegram.
 
 ---
 
-## Prerequisites
+## Table of Contents
 
-Before you begin, ensure you have the following installed and configured.
+1. [Prerequisites](#1-prerequisites)
+2. [Environment Configuration](#2-environment-configuration)
+    - [Create the `.env` file](#21-create-the-env-file)
+    - [Variable reference](#22-variable-reference)
+    - [Development vs. production values](#23-development-vs-production-values)
+3. [Local Development](#3-local-development)
+4. [Production Deployment](#4-production-deployment)
+5. [Port Reference](#5-port-reference)
+6. [Troubleshooting](#6-troubleshooting)
 
-### Required Software
+---
 
-| Requirement             | Version | Purpose                                            |
-| ----------------------- | ------- | -------------------------------------------------- |
-| Node.js                 | >= 24   | JavaScript runtime                                 |
-| pnpm                    | >= 10   | Package manager (install: `corepack enable pnpm`)  |
-| Docker & Docker Compose | Latest  | Containerized services (Redis, PostgreSQL, Ollama) |
-| Git                     | Latest  | Version control, Husky hooks                       |
+## 1. Prerequisites
 
-### Required Accounts
+### Software
 
-| Account           | Purpose              | How to Get                           |
-| ----------------- | -------------------- | ------------------------------------ |
-| Telegram account  | Create and test bots | Sign up at https://telegram.org      |
-| @BotFather access | Obtain bot tokens    | Start chat at https://t.me/BotFather |
+| Tool           | Version | Purpose                       |
+| -------------- | ------- | ----------------------------- |
+| Node.js        | 24+     | Application runtime           |
+| pnpm           | 10+     | Package manager               |
+| Docker         | recent  | Container runtime             |
+| Docker Compose | v2+     | Orchestrating the local stack |
+| Git            | any     | Cloning the repository        |
 
-### Port Availability
+### Telegram
 
-The development stack uses the following ports. Ensure none are in use:
+| Requirement        | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| A Telegram account | To chat with the bot and register yourself as an admin                   |
+| Main bot token     | Created via [@BotFather](https://t.me/BotFather) for the user-facing bot |
+| Admin bot token    | A second token via BotFather for the private admin panel                 |
 
-| Port | Service                                 |
-| ---- | --------------------------------------- |
-| 5000 | Express server (app)                    |
-| 5001 | Redis                                   |
-| 5002 | Redis Commander (UI)                    |
-| 5003 | PostgreSQL                              |
-| 5004 | CloudBeaver (DB UI)                     |
-| 5005 | Ollama (optional, local-ollama profile) |
+> **Note:** The admin bot is a _separate_ Telegram bot, not a mode of the main bot. You need two distinct tokens.
 
-### Clone the Repository
+---
+
+## 2. Environment Configuration
+
+All configuration lives in a single `.env` file at the project root. There is no separate `.env.development` / `.env.production` — the same file is used for both, with different values depending on where you are running.
+
+### 2.1 Create the `.env` file
+
+```bash
+cp .env.example .env
+```
+
+Then open `.env` and fill in every value. The file starts with empty placeholders such as `<telegram_bot_token>` — replace each one as described below.
+
+### 2.2 Variable reference
+
+The tables below document every variable. For each one you will find:
+
+- **What it is** — its purpose in the application.
+- **How to obtain it** — where the value comes from.
+- **Required in** — whether it is needed in development, production, or both.
+
+---
+
+#### Server
+
+##### `PORT`
+
+- **What it is:** The port the Express API server listens on.
+- **How to set it:** Any free integer between `3000` and `5050` (this range is enforced by validation at startup).
+- **Development:** `5000` (the default used in the examples below).
+- **Production:** Keep `5000`. The production container maps host port `5004` → container port `5000`.
+- **Required in:** development · production
+
+---
+
+#### PostgreSQL
+
+##### `DATABASE_URL`
+
+- **What it is:** The connection string the application uses to reach PostgreSQL.
+- **How to set it:** Strictly follow this format:
+
+    ```
+    postgresql://<USER>:<PASSWORD>@<HOST>:<PORT>/<DB>?schema=public
+    ```
+
+- **Development:** `postgresql://postgres:password@localhost:5003/talkasauras_bot?schema=public`
+- **Production:** The (pooled) connection string from your managed Postgres provider.
+- **Required in:** development · production
+
+##### `DIRECT_URL`
+
+- **What it is:** The _direct_ (non-pooled) connection string used by the Prisma CLI to run migrations (`db:migrate`, `db:migrate:deploy`).
+- **How to obtain it:** Managed Postgres providers expose a separate "direct" URL alongside the pooled one.
+- **Development:** Identical to `DATABASE_URL` — `postgresql://postgres:password@localhost:5003/talkasauras_bot?schema=public`
+- **Production:** The provider's direct/non-pooled URL.
+- **Required in:** development · production
+
+##### `POSTGRES_USER`
+
+- **What it is:** Username for the local Postgres container.
+- **How to set it:** `postgres`
+- **Required in:** development only _(used by the `postgres` container)_
+
+##### `POSTGRES_PASSWORD`
+
+- **What it is:** Password for the local Postgres container.
+- **How to set it:** `password` (change this for anything non-local).
+- **Required in:** development only _(used by the `postgres` container)_
+
+##### `POSTGRES_DB`
+
+- **What it is:** Name of the database to create.
+- **How to set it:** `talkasauras_bot`
+- **Required in:** development only _(used by the `postgres` container)_
+
+> In production there is no Postgres container — the database is cloud-managed — so the `POSTGRES_*` values are only needed to _construct_ `DATABASE_URL` / `DIRECT_URL`.
+
+---
+
+#### Redis
+
+##### `REDIS_HOST`
+
+- **What it is:** Hostname of the Redis server.
+- **Development:** `localhost` (the dev container publishes Redis to the host).
+- **Production:** `redis` (the service name on the internal Docker network — the production stack does **not** publish Redis to the host).
+- **Required in:** development · production
+
+##### `REDIS_PORT`
+
+- **What it is:** Port of the Redis server.
+- **Development:** `5001` (host-published port).
+- **Production:** `6379` (internal container port).
+- **Required in:** development · production
+
+##### `REDIS_USERNAME`
+
+- **What it is:** Username for the Redis server.
+- **How to set it:** `default`
+- **Required in:** development · production
+
+##### `REDIS_PASSWORD`
+
+- **What it is:** Password for the Redis server.
+- **How to set it:** `password` (change this for anything non-local).
+- **Required in:** development · production
+
+---
+
+#### Telegram
+
+##### `TELEGRAM_BOT_TOKEN`
+
+- **What it is:** The token for the main (user-facing) bot.
+- **How to obtain it:** Message [@BotFather](https://t.me/BotFather) → `/newbot`, follow the prompts, and copy the token.
+- **Required in:** development · production
+
+##### `TELEGRAM_BOT_TOKEN_INTERNAL`
+
+- **What it is:** The token for the admin (internal) bot.
+- **How to obtain it:** Repeat the BotFather flow for a _second_ bot.
+- **Required in:** development · production
+
+---
+
+#### Ollama (LLM)
+
+##### `OLLAMA_HOST`
+
+- **What it is:** The base URL of the Ollama server. Must be a valid URL.
+- **How to set it — choose one:**
+    - **Remote provider** (default): your provider's URL, e.g. `https://ollama.com`
+    - **Local container**: `http://localhost:5005` (the compose stack maps the Ollama container's `11434` to host `5005`)
+    - **Mock server** (development only, no real LLM): `http://localhost:<PORT>/api/v1/mock`, e.g. `http://localhost:5000/api/v1/mock`
+- **Required in:** development · production
+
+##### `OLLAMA_API_KEY`
+
+- **What it is:** The API key sent as a `Bearer` token with every request to the Ollama server.
+- **How to set it:**
+    - **Local / mock:** any non-empty string (it is not verified locally), e.g. `local-dev-key`
+    - **Remote:** the key issued by your Ollama provider.
+- **Required in:** development · production
+
+##### `OLLAMA_MODEL_NAME`
+
+- **What it is:** The name of the model to use for inference.
+- **How to set it:**
+    - **Remote:** the model name given by your provider, e.g. `minimax-m3`
+    - **Local:** the name of the model you pulled into the Ollama container (see [Local Ollama](#33-optional-local-ollama)).
+- **Required in:** development · production
+
+---
+
+#### Security keys
+
+Both keys are generated the same way:
+
+```bash
+openssl rand -hex 32
+```
+
+This produces a 64-character hex string (the app requires at least 32 characters).
+
+##### `SECRET_KEY_1`
+
+- **What it is:** HMAC key used to hash the Telegram ID before storing it in the database.
+- **How to obtain it:** `openssl rand -hex 32`
+- **Required in:** development · production
+
+##### `SECRET_KEY_2`
+
+- **What it is:** AES-256-GCM key used to encrypt the Telegram ID before storing it in the database.
+- **How to obtain it:** `openssl rand -hex 32` (generate a value _different_ from `SECRET_KEY_1`).
+- **Required in:** development · production
+
+---
+
+#### Admins
+
+##### `ADMINS`
+
+- **What it is:** A `|`-separated list of Telegram usernames (or user IDs) that may access the admin bot.
+- **How to set it:** `CypherBeing|another_admin_username`
+- **Required in:** development · production
+
+---
+
+### 2.3 Development vs. production values
+
+The variables that **differ** between environments are summarised below. Everything else is the same in both.
+
+| Variable       | Development                                                                   | Production                           |
+| -------------- | ----------------------------------------------------------------------------- | ------------------------------------ |
+| `DATABASE_URL` | `postgresql://postgres:password@localhost:5003/talkasauras_bot?schema=public` | Cloud provider (pooled) URL          |
+| `DIRECT_URL`   | same as `DATABASE_URL`                                                        | Cloud provider (direct) URL          |
+| `REDIS_HOST`   | `localhost`                                                                   | `redis`                              |
+| `REDIS_PORT`   | `5001`                                                                        | `6379`                               |
+| `POSTGRES_*`   | used by the local Postgres container                                          | not used (cloud database)            |
+| `OLLAMA_HOST`  | `http://localhost:5005` (local) or mock                                       | remote provider (or local container) |
+
+---
+
+## 3. Local Development
+
+### 3.1 Clone and install
 
 ```bash
 git clone https://github.com/IamDevTrivedi/Talkasauras_Bot.git
 cd Talkasauras_Bot
 ```
 
----
-
-## Environment Variables & Configuration
-
-The project uses two separate environment files — one for development, one for production. Each file is documented with inline comments explaining every variable.
-
-### Copy the Template Files
-
 ```bash
-cp .env.development.example .env.development
-cp .env.production.example .env.production
+cp .env.example .env
+# ... fill in the values using the development column above ...
 ```
 
-### Obtain Telegram Bot Tokens
-
-You need **two** separate Telegram bots — one for users, one for admins.
-
-1. Open Telegram and start a chat with [@BotFather](https://t.me/BotFather).
-2. Send `/newbot` to create the main user-facing bot.
-    - Choose a display name (e.g., `Talkasauras`).
-    - Choose a username (e.g., `TalkasaurasBot`).
-    - Copy the token (format: `1234567890:ABCdefGHIjklmNOPqrstUVwxyz`).
-    - Paste it as `TELEGRAM_BOT_TOKEN` in both `.env` files.
-3. Send `/newbot` again to create the admin/internal bot.
-    - Use a different name and username (e.g., `TalkasaurasAdmin` / `TalkasaurasAdminBot`).
-    - Copy the token and paste it as `TELEGRAM_BOT_TOKEN_INTERNAL` in both `.env` files.
-4. Keep both tokens secret — they grant full control of your bots.
-
-### Generate Encryption Keys
-
-Two cryptographic keys are required for hashing and encrypting user data at rest:
-
-```bash
-openssl rand -hex 32   # → SECRET_KEY_1 (HMAC-SHA256, 64 hex chars)
-openssl rand -hex 32   # → SECRET_KEY_2 (AES-256-GCM, 64 hex chars)
-```
-
-Paste the output values into `SECRET_KEY_1` and `SECRET_KEY_2` in both `.env` files. These must be different from each other.
-
-### Configure Admins
-
-The `ADMINS` variable is a pipe-separated (`|`) list of Telegram usernames or numeric user IDs authorized to use the admin bot.
-
-To find your Telegram user ID, message [@userinfobot](https://t.me/userinfobot) or [@getidsbot](https://t.me/getidsbot) on Telegram.
-
-```bash
-# Examples:
-ADMINS=john_doe
-ADMINS=john_doe|jane_smith|123456789
-```
-
-### Environment Files Summary
-
-| File               | Used When           | Loaded By                                      |
-| ------------------ | ------------------- | ---------------------------------------------- |
-| `.env.development` | `pnpm dev`          | `src/config/env.ts` via `dotenv`               |
-| `.env.production`  | `docker compose up` | Docker Compose `env_file` injects into process |
-
-Each file has detailed inline comments explaining every variable — open them and fill in the remaining values (`OLLAMA_HOST`, `OLLAMA_MODEL_NAME`, `REDIS_*`, `DATABASE_URL`, etc.) according to your setup.
-
----
-
-## Running in Development Mode
-
-### Infrastructure — Start All Services
-
-The `docker-compose.dev.yml` file defines all backing services the bot needs. Start them with:
+### 3.2 Start the infrastructure
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-This launches:
+This starts Redis, Redis Insight, PostgreSQL, and CloudBeaver.
 
-| Container       | Internal Port | Host Port | Purpose                           |
-| --------------- | ------------- | --------- | --------------------------------- |
-| Redis           | 6379          | 5001      | BullMQ job queues + rate limiting |
-| Redis Commander | 8081          | 5002      | Web UI for inspecting Redis       |
-| PostgreSQL      | 5432          | 5003      | Primary database                  |
-| CloudBeaver     | 8978          | 5004      | Web UI for browsing the database  |
-| Ollama          | —             | —         | Not started yet (see 3.2)         |
+### 3.3 (Optional) Local Ollama
 
-Verify all services are healthy:
-
-```bash
-docker compose -f docker-compose.dev.yml ps
-```
-
-All services should show `Up` or `healthy`.
-
-### Using Local Ollama
-
-The Ollama container is behind a Docker profile so it only starts when explicitly requested.
-
-#### Start the Ollama Container
+If you prefer a local model over a remote Ollama provider, start the Ollama container as well:
 
 ```bash
 docker compose -f docker-compose.dev.yml --profile local-ollama up -d
 ```
 
-This starts the Ollama server on port `5005` (host) mapped to `11434` (container).
-
-#### Install an LLM Model
-
-Pull a model into the running Ollama container:
+Then pull a model of your choice into the container:
 
 ```bash
-docker compose -f docker-compose.dev.yml exec ollama ollama pull llama3.2
+docker exec -it talkasauras-dev-ollama ollama run <model-name>
 ```
 
-Common models and their approximate sizes:
+After pulling, set `OLLAMA_MODEL_NAME=<model-name>` and `OLLAMA_HOST=http://localhost:5005` in `.env`.
 
-| Model          | Parameters | Size (approx.) | Use Case                |
-| -------------- | ---------- | -------------- | ----------------------- |
-| `llama3.2`     | 3.8B       | 2.4 GB         | Fast, general purpose   |
-| `gemma3`       | 9B         | 5.5 GB         | Strong reasoning        |
-| `mistral`      | 7B         | 4.1 GB         | Efficient, good balance |
-| `qwen2.5`      | 7B         | 4.2 GB         | Multilingual, code      |
-| `minimax-m2.1` | —          | varies         | Alternative option      |
-
-#### List Installed Models
+### 3.4 Install dependencies and set up the database
 
 ```bash
-docker compose -f docker-compose.dev.yml exec ollama ollama list
+pnpm run install:all     # installs dependencies (pnpm install)
+pnpm run db:generate     # generates the Prisma client
+pnpm run db:migrate      # applies database migrations (prisma migrate dev)
 ```
 
-#### Configure the Environment
-
-Set these in `.env.development` to point the bot at your local Ollama:
+### 3.5 Run the application
 
 ```bash
-OLLAMA_HOST=http://localhost:5005
-OLLAMA_MODEL_NAME=llama3.2
+pnpm run dev
 ```
 
-#### Alternative: Use the Built-in Mock API
+The server starts on `PORT` and logs `Server is running on port <PORT>` when ready.
 
-If you don't want to run Ollama at all, the app includes a mock Ollama API that returns canned responses. Set:
+---
+
+## 4. Production Deployment
+
+The production stack deliberately **omits the database-observation containers** (CloudBeaver, Redis Insight) to reduce the attack surface. It consists of:
+
+- **Cloud PostgreSQL** — managed database (connection strings only, no container).
+- **Local Redis** — internal container, not exposed to the host.
+- **Application** — the bot image running in Docker.
+- **Optional local Ollama** — only if you are not using a remote provider.
+
+### 4.1 Deploy
 
 ```bash
-OLLAMA_HOST=http://localhost:5000/api/v1/mock
-OLLAMA_API_KEY=anything
-OLLAMA_MODEL_NAME=anything
+git clone https://github.com/IamDevTrivedi/Talkasauras_Bot.git
+cd Talkasauras_Bot
 ```
-
-This is useful for testing the bot's command handling, reminders, and admin features without needing a real LLM.
-
-### Install Dependencies
 
 ```bash
-pnpm install
+cp .env.example .env
+# ... fill in the values using the production column above ...
 ```
 
-This installs all Node.js dependencies and sets up Husky git hooks (pre-commit lint + format checks).
-
-### Push Database Schema
-
-Generate the Prisma client and push the schema to your PostgreSQL database:
+Start the stack — choose the command that matches your Ollama setup:
 
 ```bash
-pnpm db:push
+docker compose up -d                           # remote Ollama provider
+docker compose --profile local-ollama up -d    # local Ollama container
 ```
 
-This creates all tables (`User`, `Message`, `Feedback`, `Reminder`) and enums (`WritingStyle`, `Model`, `Role`).
+> The production compose file references the published image `ghcr.io/iamdevtrivedi/talkasauras_bot:latest` (and falls back to building from the `Dockerfile` if needed).
 
-> If you prefer SQL migrations instead of direct push, use `pnpm db:migrate` instead.
+### 4.2 Apply database migrations
 
-### Start the Application
+If migrations are not applied automatically by your CI/CD pipeline, run them once against the production database:
 
 ```bash
-pnpm dev
-```
-
-This uses `tsx watch` — the app automatically restarts when files change.
-
-#### What Happens at Startup
-
-1. Validates all environment variables (Zod schema).
-2. Connects to PostgreSQL via Prisma.
-3. Connects to Redis.
-4. Initializes the Ollama client.
-5. Starts the Express server on port `5000`.
-    - `GET /` — Welcome message.
-    - `GET /api/v1/health` — Health check.
-    - `/api/v1/mock` — Mock Ollama endpoints (if enabled).
-6. Launches the main user-facing Telegram bot.
-7. Launches the admin/internal Telegram bot.
-8. Schedules the daily message cron job (6 AM IST).
-
-### Verify the Setup
-
-#### Health Check
-
-```bash
-curl http://localhost:5000/api/v1/health
-```
-
-Expected response:
-
-```json
-{
-    "success": true,
-    "message": "Service is healthy"
-}
-```
-
-#### Test the Main Bot
-
-1. Open Telegram and find your main bot (the username you chose in @BotFather).
-2. Send `/start`.
-3. The bot should respond with a welcome message.
-4. Send a text message — the bot will reply (via Ollama or mock).
-
-#### Test the Admin Bot
-
-1. Open Telegram and find your admin bot.
-2. Send `/start`.
-3. If your Telegram username or ID is in `ADMINS`, you'll see the admin menu.
-4. Try `/status` to view system health and queue depths.
-
-#### Check the Logs
-
-```bash
-tail -f logs/app-development.log
-tail -f logs/error-development.log
+pnpm run db:migrate:deploy
 ```
 
 ---
 
-## Running in Production Mode
+## 5. Port Reference
 
-### Fill `.env.production`
+### Development (`docker-compose.dev.yml`)
 
-Open `.env.production` and set every variable to its production value. Key differences from development:
+| Service         | Host port               | Container port |
+| --------------- | ----------------------- | -------------- |
+| Redis           | `5001`                  | `6379`         |
+| Redis Insight   | `5002`                  | `5540`         |
+| PostgreSQL      | `5003`                  | `5432`         |
+| CloudBeaver     | `5004`                  | `8978`         |
+| Ollama (opt-in) | `5005`                  | `11434`        |
+| App (Express)   | `PORT` (default `5000`) | —              |
 
-| Variable       | Dev Value                            | Prod Value                                   |
-| -------------- | ------------------------------------ | -------------------------------------------- |
-| `NODE_ENV`     | `development`                        | `production`                                 |
-| `DATABASE_URL` | Local PostgreSQL on `localhost:5003` | Cloud/Supabase with pgBouncer (port 6543)    |
-| `DIRECT_URL`   | Not needed                           | Direct connection for migrations (port 5432) |
-| `REDIS_HOST`   | `localhost`                          | `redis` (Docker network)                     |
-| `REDIS_PORT`   | `5001`                               | `6379`                                       |
-| `OLLAMA_HOST`  | `http://localhost:5005`              | Remote Ollama endpoint                       |
+### Production (`docker-compose.yml`)
 
-For PostgreSQL, [Supabase](https://supabase.com) is recommended — create a project and copy the connection strings from Project Settings → Database. Use the pooled connection (port 6543, `?pgbouncer=true`) for `DATABASE_URL` and the direct connection (port 5432) for `DIRECT_URL`.
-
-### Deploy
-
-```bash
-docker compose up -d --build
-```
-
-That's it. This single command:
-
-1. Builds the bot Docker image (Node 24 Alpine).
-2. Starts a Redis container (BullMQ job queues).
-3. Starts a Redis Commander container (monitoring UI on port `5005`).
-4. Starts the bot container, which automatically:
-    - Runs `prisma migrate deploy` to apply pending migrations.
-    - Starts the Express server (internal port `5000`, mapped to host `5004`).
-    - Launches both Telegram bots (main + admin).
-    - Schedules the daily message cron (6 AM IST).
-
-All moving parts — database migrations, Redis, bot processes, cron scheduling — are handled automatically inside the containers.
-
-### Verify the Setup
-
-```bash
-# Health check
-curl http://<your-server-ip>:5004/api/v1/health
-
-# View logs
-docker compose logs -f bot
-
-# Check service status
-docker compose ps
-```
-
-Then open Telegram and test both bots — the main user bot and the admin bot.
+| Service         | Host port       | Container port |
+| --------------- | --------------- | -------------- |
+| Bot (app)       | `5004`          | `5000`         |
+| Redis           | _internal only_ | `6379`         |
+| Ollama (opt-in) | `5005`          | `11434`        |
 
 ---
 
-## Useful Commands Reference
+## 6. Troubleshooting
 
-| Command                  | Description                                        |
-| ------------------------ | -------------------------------------------------- |
-| `pnpm dev`               | Start development server with hot reload           |
-| `pnpm build`             | Compile TypeScript to `dist/`                      |
-| `pnpm start`             | Run compiled production build                      |
-| `pnpm lint`              | Run ESLint with auto-fix                           |
-| `pnpm lint:check`        | Check lint without auto-fix                        |
-| `pnpm format`            | Run Prettier formatter                             |
-| `pnpm format:check`      | Check formatting only                              |
-| `pnpm check`             | Run lint + format check (used by Husky pre-commit) |
-| `pnpm db:generate`       | Generate Prisma client                             |
-| `pnpm db:push`           | Push schema to database (development)              |
-| `pnpm db:migrate`        | Create and apply a new migration                   |
-| `pnpm db:migrate:deploy` | Apply pending migrations (production)              |
-| `pnpm db:studio`         | Open Prisma Studio on port 5004                    |
-| `pnpm db:seed`           | Run database seed script                           |
-| `pnpm clean:all`         | Remove `dist/` and `node_modules/`                 |
-| `pnpm install:all`       | Fresh install of all dependencies                  |
-| `pnpm reset:all`         | Clean + reinstall                                  |
+### "Environment variable validation failed"
 
----
+The app validates the entire environment on startup and exits with a detailed tree of errors. Common causes:
 
-## Troubleshooting
+- `PORT` outside the `3000`–`5050` range.
+- `OLLAMA_HOST` not a valid URL (it must include the scheme, e.g. `http://` / `https://`).
+- `SECRET_KEY_1` / `SECRET_KEY_2` shorter than 32 characters.
+- An empty required value such as `TELEGRAM_BOT_TOKEN` or `ADMINS`.
 
-| Problem                       | Likely Cause                                   | Solution                                                |
-| ----------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
-| Bot doesn't respond           | Wrong `TELEGRAM_BOT_TOKEN`                     | Re-check token from @BotFather                          |
-| Bot responds "Unauthorized"   | Your user not in `ADMINS`                      | Check your Telegram ID via @userinfobot                 |
-| Database connection failed    | PostgreSQL not running or wrong `DATABASE_URL` | Run `docker compose ps`, verify Postgres is up          |
-| Redis connection failed       | Redis not running or wrong `REDIS_HOST/PORT`   | Run `docker compose ps`, verify Redis is up             |
-| "Model not found" from Ollama | Model not pulled or wrong `OLLAMA_MODEL_NAME`  | Run `ollama pull <model>` in the container              |
-| Rate limit errors             | More than 10 messages in 60 seconds            | Wait 60 seconds before sending more                     |
-| Port already in use           | Another service on same port                   | Change `PORT` in `.env` or stop conflicting service     |
-| Prisma migration fails        | Wrong `DIRECT_URL` or DB not reachable         | Verify `DIRECT_URL` uses direct port (5432), not pooler |
-| App crashes on startup        | Missing or invalid env var                     | Check logs for validation errors from Zod schema        |
-| Docker build fails            | Out of disk space or network issues            | Run `docker system prune`, retry                        |
+Read the printed error tree — it names the exact field that failed.
+
+### Redis or PostgreSQL not healthy
+
+```bash
+docker compose -f docker-compose.dev.yml ps
+```
+
+Confirm the containers are `healthy` (not `starting` or `unhealthy`). The dev stack uses healthchecks; wait a few seconds after `up -d` before running the app.
+
+### Port already in use
+
+If a host port (`5001`–`5005`) is occupied, either stop the conflicting process or change the host side of the mapping in the compose file and update `.env` to match.
+
+### Bot doesn't respond on Telegram
+
+- Confirm `TELEGRAM_BOT_TOKEN` matches the token from BotFather.
+- Check the startup log for `Mode: production` / `Mode: development` and the `Server is running` line.
+- Ensure the machine can reach `OLLAMA_HOST` (the bot needs it to generate replies).
