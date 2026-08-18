@@ -47,8 +47,8 @@ On every push to main, GitHub Actions runs lint and format checks, builds a Dock
 
 ## Tech Stack
 
-- **Runtime:** Node.js 24+, TypeScript 5.9
-- **Package Manager:** pnpm 10
+- **Runtime:** Bun 1.3+, TypeScript 5.9
+- **Package Manager:** Bun
 - **Infrastructure:** Docker Compose (Redis, PostgreSQL, Ollama)
 
 ## Setup
