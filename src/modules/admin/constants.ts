@@ -12,8 +12,6 @@ type PendingAdminAction = {
     message?: string;
 };
 
-const pendingActions = new Map<number, PendingAdminAction>();
-
 const BROADCAST_AUDIENCE_LABELS: Record<BroadcastAudience, string> = {
     subscribed: "Subscribed users",
     all: "All users",
@@ -28,6 +26,5 @@ export {
     MAX_FEEDBACK_LIMIT,
     BroadcastAudience,
     PendingAdminAction,
-    pendingActions,
     BROADCAST_AUDIENCE_LABELS,
 };

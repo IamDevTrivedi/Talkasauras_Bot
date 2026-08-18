@@ -1,8 +1,8 @@
 import { adminBot } from "../botInstance.js";
-import { pendingActions } from "../constants.js";
+import { deletePendingAction } from "../services/pendingActions.js";
 
 const registerCancel = () => {
-    adminBot.command("cancel", (ctx) => {
+    adminBot.command("cancel", async (ctx) => {
         const adminId = ctx.from?.id;
 
         if (!adminId) {
@@ -10,7 +10,7 @@ const registerCancel = () => {
             return;
         }
 
-        const hadPendingAction = pendingActions.delete(adminId);
+        const hadPendingAction = await deletePendingAction(adminId);
 
         ctx.reply(
             hadPendingAction

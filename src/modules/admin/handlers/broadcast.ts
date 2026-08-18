@@ -1,8 +1,13 @@
 import { adminBot } from "../botInstance.js";
 import { Markup } from "telegraf";
 import { logger } from "@/utils/logger.js";
-import { MAX_BROADCAST_LENGTH, BROADCAST_AUDIENCE_LABELS, pendingActions } from "../constants.js";
+import { MAX_BROADCAST_LENGTH, BROADCAST_AUDIENCE_LABELS } from "../constants.js";
 import type { BroadcastAudience } from "../constants.js";
+import {
+    setPendingAction,
+    getPendingAction,
+    deletePendingAction,
+} from "../services/pendingActions.js";
 import { getCommandArgs, truncateText } from "../utils.js";
 import { getBroadcastRecipients, queueBroadcastInBatches } from "../services/broadcast.js";
 
@@ -44,7 +49,7 @@ const registerBroadcast = () => {
             return;
         }
 
-        pendingActions.set(adminId, {
+        await setPendingAction(adminId, {
             type: "broadcast",
             audience,
         });
@@ -66,7 +71,7 @@ const registerBroadcast = () => {
             return;
         }
 
-        pendingActions.delete(adminId);
+        await deletePendingAction(adminId);
         await ctx.answerCbQuery("Broadcast cancelled.");
         await ctx.editMessageText("Broadcast flow cancelled.");
     });
@@ -79,7 +84,7 @@ const registerBroadcast = () => {
             return;
         }
 
-        const pendingAction = pendingActions.get(adminId);
+        const pendingAction = await getPendingAction(adminId);
 
         if (!pendingAction || pendingAction.type !== "broadcast" || !pendingAction.message) {
             await ctx.answerCbQuery("No pending broadcast to confirm.");
@@ -92,7 +97,7 @@ const registerBroadcast = () => {
             const users = await getBroadcastRecipients(pendingAction.audience);
 
             if (users.length === 0) {
-                pendingActions.delete(adminId);
+                await deletePendingAction(adminId);
                 await ctx.editMessageText(
                     `No users matched audience: ${BROADCAST_AUDIENCE_LABELS[pendingAction.audience]}.\n` +
                         "Broadcast cancelled."
@@ -105,7 +110,7 @@ const registerBroadcast = () => {
                 pendingAction.message
             );
 
-            pendingActions.delete(adminId);
+            await deletePendingAction(adminId);
 
             await ctx.editMessageText(
                 `Broadcast Queued\n` +
@@ -134,7 +139,7 @@ const registerBroadcast = () => {
             return next();
         }
 
-        const pendingAction = pendingActions.get(adminId);
+        const pendingAction = await getPendingAction(adminId);
 
         if (!pendingAction) {
             return next();
@@ -159,7 +164,7 @@ const registerBroadcast = () => {
                 return;
             }
 
-            pendingActions.set(adminId, {
+            await setPendingAction(adminId, {
                 ...pendingAction,
                 message: broadcastText,
             });
