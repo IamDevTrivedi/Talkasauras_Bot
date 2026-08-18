@@ -43,12 +43,12 @@ Four tables store the application data: User, Message, Feedback, and Reminder, w
   <img src="docs/diagrams/talkasauras-cicd.png" alt="CI/CD Pipeline Diagram" width="1000"/>
 </div>
 
-On every push to main, GitHub Actions runs lint and format checks, builds a Docker image, pushes to GHCR, and deploys to your VPS via Docker Compose with automatic rollback on health check failure.
+On every push to main, GitHub Actions runs lint, format, and type checks, builds a Docker image, pushes to GHCR, and deploys to your VPS via Docker Compose with automatic rollback on health check failure.
 
 ## Tech Stack
 
-- **Runtime:** Node.js 24+, TypeScript 5.9
-- **Package Manager:** pnpm 10
+- **Runtime:** Bun 1.3+, TypeScript 5.9
+- **Package Manager:** Bun
 - **Infrastructure:** Docker Compose (Redis, PostgreSQL, Ollama)
 
 ## Setup

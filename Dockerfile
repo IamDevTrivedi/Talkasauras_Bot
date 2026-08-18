@@ -1,30 +1,43 @@
-FROM node:24-alpine AS builder
-
-RUN corepack enable pnpm
+# ─────────────────────────────────────────────
+# Stage 1: Builder
+# ─────────────────────────────────────────────
+FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --ignore-scripts
+# Install all dependencies (frozen lockfile for reproducibility)
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-COPY . .
-RUN pnpm db:generate
-RUN pnpm run build
-
-# ─── Production Stage ───────────────────────────────────────
-
-FROM node:24-alpine AS production
-
-RUN corepack enable pnpm
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod  --frozen-lockfile --ignore-scripts
-
-COPY --from=builder /app/dist ./dist
+# Copy only what the build needs
+COPY tsconfig.json ./
 COPY prisma/ ./prisma
 COPY prisma.config.ts ./
-RUN pnpm db:generate
+COPY src/ ./src
+
+# Generate Prisma client and build
+RUN bun run db:generate
+RUN bun run build
+
+# ─────────────────────────────────────────────
+# Stage 2: Production
+# ─────────────────────────────────────────────
+FROM oven/bun:1-alpine AS production
+WORKDIR /app
+
+# Install only production dependencies
+COPY package.json bun.lock ./
+RUN bun install --production
+
+# Copy build output from builder
+COPY --from=builder /app/dist ./dist
+
+# Copy Prisma schema and config for migrate:deploy + generate
+COPY prisma/ ./prisma
+COPY prisma.config.ts ./
+
+# Regenerate Prisma client in the production image
+RUN bun run db:generate
 
 EXPOSE 5000
 
-CMD [ "sh", "-c", "pnpm run db:migrate:deploy && pnpm run start" ]
+CMD [ "sh", "-c", "bun run db:migrate:deploy && bun run start" ]

@@ -1,61 +1,68 @@
-# Git
+# ── Version control ──────────────────────────
 .git
 .gitignore
 .gitattributes
 
-# Node modules
+# ── Dependencies (rebuilt inside Docker) ─────
 node_modules
-npm-debug.log
-yarn-error.log
+.bun
 
-# Environment variables
+# ── Environment variables ─────────────────────
 .env
-.env.local
-.env.*.local
 .env.*
+*.env
 
-# Project documentation & meta
-docs/
-scripts/
-.github/
-.husky/
-eslint.config.mjs
-.prettierrc
-.prettierignore
-.editorconfig
-AGENTS.md
-README.md
-LICENSE
-opencode.json
-
-# Prisma seed (not needed at runtime)
-prisma/seed.ts
-
-# IDE
-.vscode
-.idea
-.DS_Store
-*.swp
-*.swo
-
-# Build outputs
+# ── Build outputs ─────────────────────────────
 dist
 build
 .next
 out
 
-# Logs
+# ── Logs ──────────────────────────────────────
 logs
 *.log
+npm-debug.log
+yarn-error.log
 
-# OS
+# ── Dev tooling & config ──────────────────────
+.husky
+eslint.config.mjs
+.prettierrc
+.prettierignore
+.editorconfig
+tsconfig.*.json
+
+# ── CI / GitHub ───────────────────────────────
+.github
+
+# ── Project docs & meta ───────────────────────
+docs
+scripts
+AGENTS.md
+README.md
+LICENSE
+opencode.json
+skills-lock.json
+.agents
+
+# ── Prisma – skip seed file ───────────────────
+prisma/seed.ts
+
+# ── IDE / OS artifacts ────────────────────────
+.vscode
+.idea
+.DS_Store
 Thumbs.db
+*.swp
+*.swo
 
-# Testing
+# ── Testing ───────────────────────────────────
 coverage
 .nyc_output
 
-# Docker
-docker-compose.override.yml
+# ── Docker files (no need to ship themselves) ─
 Dockerfile
 .dockerignore
+docker-compose.yml
+docker-compose.dev.yml
+docker-compose.override.yml

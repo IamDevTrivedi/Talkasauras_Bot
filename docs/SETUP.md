@@ -24,13 +24,12 @@ By the end you will have:
 
 ### Software
 
-| Tool           | Version | Purpose                       |
-| -------------- | ------- | ----------------------------- |
-| Node.js        | 24+     | Application runtime           |
-| pnpm           | 10+     | Package manager               |
-| Docker         | recent  | Container runtime             |
-| Docker Compose | v2+     | Orchestrating the local stack |
-| Git            | any     | Cloning the repository        |
+| Tool           | Version | Purpose                               |
+| -------------- | ------- | ------------------------------------- |
+| Bun            | 1.3+    | Application runtime & package manager |
+| Docker         | recent  | Container runtime                     |
+| Docker Compose | v2+     | Orchestrating the local stack         |
+| Git            | any     | Cloning the repository                |
 
 ### Telegram
 
@@ -268,15 +267,15 @@ After pulling, set `OLLAMA_MODEL_NAME=<model-name>` and `OLLAMA_HOST=http://loca
 ### 3.4 Install dependencies and set up the database
 
 ```bash
-pnpm run install:all     # installs dependencies (pnpm install)
-pnpm run db:generate     # generates the Prisma client
-pnpm run db:migrate      # applies database migrations (prisma migrate dev)
+bun run install:all     # installs dependencies (bun install)
+bun run db:generate     # generates the Prisma client
+bun run db:migrate      # applies database migrations (prisma migrate dev)
 ```
 
 ### 3.5 Run the application
 
 ```bash
-pnpm run dev
+bun run dev
 ```
 
 The server starts on `PORT` and logs `Server is running on port <PORT>` when ready.
@@ -316,7 +315,7 @@ docker compose --profile local-ollama up -d    # local Ollama container
 If migrations are not applied automatically by your CI/CD pipeline, run them once against the production database:
 
 ```bash
-pnpm run db:migrate:deploy
+bun run db:migrate:deploy
 ```
 
 ## 5. Port Reference

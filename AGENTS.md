@@ -6,17 +6,17 @@ A Telegram chatbot powered by Ollama LLM with real-time AI conversations, schedu
 
 ## Tech Stack
 
-| Layer             | Technology                                                                  |
-| ----------------- | --------------------------------------------------------------------------- |
-| **Runtime**       | Node.js 24+, TypeScript 5.9, ESM (`"type": "module"`)                       |
-| **Framework**     | Express 5 (API), Telegraf 4 (Telegram bot client)                           |
-| **LLM**           | Ollama (via `ollama` npm SDK), mock endpoint for offline dev                |
-| **Database**      | PostgreSQL 18 + Prisma ORM 7 (`@prisma/adapter-pg`)                         |
-| **Cache / Queue** | Redis 8 + BullMQ (5 job queues)                                             |
-| **Auth**          | Admin bot restricted to `ADMINS` env list; HMAC + AES-256-GCM for user data |
-| **Validation**    | Zod 4                                                                       |
-| **Logging**       | Pino + pino-pretty (console + file transports)                              |
-| **Infra**         | Docker / Compose, GitHub Actions CI/CD (lint → build → GHCR → VPS deploy)   |
+| Layer             | Technology                                                                                   |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| **Runtime**       | Bun 1.3+, TypeScript 5.9, ESM (`"type": "module"`)                                           |
+| **Framework**     | Express 5 (API), Telegraf 4 (Telegram bot client)                                            |
+| **LLM**           | Ollama (via `ollama` npm SDK), mock endpoint for offline dev                                 |
+| **Database**      | PostgreSQL 18 + Prisma ORM 7 (`@prisma/adapter-pg`)                                          |
+| **Cache / Queue** | Redis 8 + BullMQ (5 job queues)                                                              |
+| **Auth**          | Admin bot restricted to `ADMINS` env list; HMAC + AES-256-GCM for user data                  |
+| **Validation**    | Zod 4                                                                                        |
+| **Logging**       | Pino + pino-pretty (console + file transports)                                               |
+| **Infra**         | Docker / Compose, GitHub Actions CI/CD (lint, format, typecheck → build → GHCR → VPS deploy) |
 
 ## Key Architecture Patterns
 
@@ -83,27 +83,27 @@ Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_T
 
 ### Root
 
-| Command             | Description                      |
-| ------------------- | -------------------------------- |
-| `pnpm dev`          | Dev watch mode via `tsx`         |
-| `pnpm build`        | TypeScript compile + `tsc-alias` |
-| `pnpm start`        | Production start from `dist/`    |
-| `pnpm lint`         | ESLint auto-fix                  |
-| `pnpm lint:check`   | ESLint check (zero warnings)     |
-| `pnpm format`       | Prettier auto-format             |
-| `pnpm format:check` | Prettier check                   |
-| `pnpm check`        | `lint:check` + `format:check`    |
+| Command            | Description                                 |
+| ------------------ | ------------------------------------------- |
+| `bun dev`          | Dev watch mode (Bun native TS)              |
+| `bun build`        | Type-check + bundle to `dist/`              |
+| `bun start`        | Production start from `dist/`               |
+| `bun lint`         | ESLint auto-fix                             |
+| `bun lint:check`   | ESLint check (zero warnings)                |
+| `bun format`       | Prettier auto-format                        |
+| `bun format:check` | Prettier check                              |
+| `bun typecheck`    | TypeScript type check (no emit)             |
+| `bun check`        | `lint:check` + `format:check` + `typecheck` |
 
 ### Database
 
-| Command                  | Description                       |
-| ------------------------ | --------------------------------- |
-| `pnpm db:generate`       | Generate Prisma client            |
-| `pnpm db:push`           | Push schema to DB (no migration)  |
-| `pnpm db:migrate`        | Create + apply migration (dev)    |
-| `pnpm db:migrate:deploy` | Apply pending migrations (prod)   |
-| `pnpm db:studio`         | Launch Prisma Studio on port 5004 |
-| `pnpm db:reset`          | Reset DB (drops all data)         |
+| Command                 | Description                      |
+| ----------------------- | -------------------------------- |
+| `bun db:generate`       | Generate Prisma client           |
+| `bun db:push`           | Push schema to DB (no migration) |
+| `bun db:migrate`        | Create + apply migration (dev)   |
+| `bun db:migrate:deploy` | Apply pending migrations (prod)  |
+| `bun db:reset`          | Reset DB (drops all data)        |
 
 ### Docker
 
@@ -115,7 +115,7 @@ Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_T
 
 ## Important Notes
 
-- Pre-commit hook runs `pnpm check` (Husky)
+- Pre-commit hook runs `bun check` (Husky)
 - Build output: `dist/`
 - Single `.env` file at project root (gitignored; use `.env.example` as template)
 - Mock Ollama API available at `/api/v1/mock/*` for offline development
@@ -127,6 +127,6 @@ Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_T
 - NEVER make git commits, git pushes, or GitHub PR changes without explicit user permission
 - Always ask before committing, pushing, or creating/modifying pull requests
 - NEVER use `any` type
-- STRICTLY use `pnpm format` to auto-format code; do not manually format
-- STRICTLY use `pnpm lint` to auto-fix lint issues; do not manually fix lint
-- Run `pnpm check` before considering work complete
+- STRICTLY use `bun format` to auto-format code; do not manually format
+- STRICTLY use `bun lint` to auto-fix lint issues; do not manually fix lint
+- Run `bun check` before considering work complete
