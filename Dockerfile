@@ -1,30 +1,29 @@
-FROM node:24-alpine AS builder
+FROM oven/bun:1-alpine AS builder
 
-RUN corepack enable pnpm
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --ignore-scripts
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --ignore-scripts
 
 COPY . .
-RUN pnpm db:generate
-RUN pnpm run build
+RUN bunx prisma generate
+RUN bun run build
 
 # ─── Production Stage ───────────────────────────────────────
 
-FROM node:24-alpine AS production
+FROM oven/bun:1-alpine AS production
 
-RUN corepack enable pnpm
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod  --frozen-lockfile --ignore-scripts
+COPY package.json bun.lock ./
+RUN bun install --production --ignore-scripts
 
 COPY --from=builder /app/dist ./dist
+COPY src ./src
 COPY prisma/ ./prisma
 COPY prisma.config.ts ./
-RUN pnpm db:generate
+RUN bunx prisma generate
 
 EXPOSE 5000
 
-CMD [ "sh", "-c", "pnpm run db:migrate:deploy && pnpm run start" ]
+CMD [ "sh", "-c", "bun run db:migrate:deploy && bun run start" ]

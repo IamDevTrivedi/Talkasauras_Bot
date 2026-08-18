@@ -30,15 +30,15 @@
     },
     "command": {
         "check": {
-            "template": "Run pnpm check and fix any issues",
+            "template": "Run bun check and fix any issues",
             "description": "Run lint and format check"
         },
         "build": {
-            "template": "Build with `pnpm build`",
-            "description": "Compile TypeScript to /dist/"
+            "template": "Build with `bun build`",
+            "description": "Bundle TypeScript to /dist/"
         },
         "db-migrate": {
-            "template": "Create and apply a new Prisma migration with `pnpm db:migrate` and update the Prisma client with `pnpm db:generate`",
+            "template": "Create and apply a new Prisma migration with `bun db:migrate` and update the Prisma client with `bun db:generate`",
             "description": "Create and apply a new database migration"
         }
     }
