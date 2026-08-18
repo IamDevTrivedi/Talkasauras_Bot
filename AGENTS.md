@@ -3,7 +3,6 @@
 ## Project Overview
 
 A Telegram chatbot powered by Ollama LLM with real-time AI conversations, scheduled reminders, job queuing (BullMQ), and PostgreSQL persistence. Live at [@TalkasaurasBot](https://t.me/TalkasaurasBot).
----
 
 ## Tech Stack
 
@@ -18,72 +17,6 @@ A Telegram chatbot powered by Ollama LLM with real-time AI conversations, schedu
 | **Validation**    | Zod 4                                                                       |
 | **Logging**       | Pino + pino-pretty (console + file transports)                              |
 | **Infra**         | Docker / Compose, GitHub Actions CI/CD (lint → build → GHCR → VPS deploy)   |
-
----
-
-## Project Structure
-
-```
-src/                        Main source code
-├── index.ts                App entry point (init DB, Redis, Express, bots)
-├── shutdown.ts             Graceful shutdown (SIGINT/SIGTERM)
-├── config/
-│   ├── checkEnv.ts         Zod env validation
-│   ├── env.ts              Typed env export (dev/prod)
-│   └── ollama.ts           Ollama client init
-├── constants/
-│   └── app.ts              Prompts, rate limits, cron schedule, writing styles
-├── db/
-│   ├── prisma.ts           Prisma client (PrismaPg adapter)
-│   └── redis.ts            Redis client
-├── utils/
-│   ├── crypto.ts           HMAC + AES-256-GCM encrypt/decrypt
-│   ├── genPrompt.ts        Dynamic system prompt builder
-│   └── logger.ts           Pino logger
-└── modules/
-    ├── root/               Express GET /
-    ├── health/             Express GET /api/v1/health
-    ├── mock/               Express mock Ollama API (/api/v1/mock/*)
-    ├── bot/                User-facing Telegram bot
-    │   ├── bot.ts          prepare() + launch()
-    │   ├── botInstance.ts  Telegraf instance
-    │   ├── handlers/       10 handlers (start, info, feedback, clear,
-    │   │                   temporary, instructions, remindMe, writingStyle,
-    │   │                   photo, text)
-    │   ├── middleware/     4 middleware (errorHandler, identifyUser,
-    │   │                   createUser, rateLimiter)
-    │   └── services/       4 services (chat, message, user, reminder)
-    ├── admin/              Admin/internal Telegram bot
-    │   ├── bot.ts          prepare() + launch()
-    │   ├── botInstance.ts  Telegraf instance
-    │   ├── handlers/       8 handlers (start, help, whoami, cancel,
-    │   │                   broadcast, feedbacks, analytics, status)
-    │   ├── middleware/     2 middleware (auth, errorHandler)
-    │   └── services/       4 services (broadcast, feedback, analytics, status)
-    └── queue/              BullMQ job queues
-        ├── queues.ts       5 typed queues
-        ├── workers.ts      5 workers
-        ├── redisConfig.ts  Redis connection config
-        └── processors/
-            ├── updateLastActivity.ts
-            ├── sendReminder.ts
-            ├── sendBroadcast.ts
-            ├── dailyMsgCreator.ts
-            └── dailyMsgSender.ts
-
-prisma/
-├── schema.prisma           4 models, 3 enums
-├── migrations/             13 timestamped migrations
-└── seed.ts                 Optional seed
-
-scripts/                    clean-all, install-all, reset-all, diagrams
-docs/                       SETUP.md, architecture/ER/CI-CD diagrams
-docker-compose.yml          Production stack (bot + redis + redis-commander)
-docker-compose.dev.yml      Dev stack (redis + postgres + cloudbeaver + ollama)
-Dockerfile                  Multi-stage build (Node 24 Alpine)
-```
-
----
 
 ## Key Architecture Patterns
 
@@ -134,8 +67,6 @@ errorHandler → identifyUser → createUser → [commands] → rateLimiter → 
 
 Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_TIMEOUT`).
 
----
-
 ## Conventions
 
 | Rule               | Detail                                                           |
@@ -147,8 +78,6 @@ Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_T
 | **Formatting**     | Prettier (tabWidth 4, semi, singleQuote false, printWidth 100)   |
 | **Linting**        | ESLint + typescript-eslint (zero warnings required)              |
 | **Error handling** | Bot handlers catch errors and log via Pino                       |
-
----
 
 ## Commands
 
@@ -174,7 +103,6 @@ Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_T
 | `pnpm db:migrate`        | Create + apply migration (dev)    |
 | `pnpm db:migrate:deploy` | Apply pending migrations (prod)   |
 | `pnpm db:studio`         | Launch Prisma Studio on port 5004 |
-| `pnpm db:seed`           | Run seed script                   |
 | `pnpm db:reset`          | Reset DB (drops all data)         |
 
 ### Docker
@@ -185,14 +113,11 @@ Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_T
 | `docker compose -f docker-compose.dev.yml up --profile local-ollama` | Dev + local Ollama       |
 | `docker compose up`                                                  | Start production stack   |
 
----
-
 ## Important Notes
 
-- Pre-commit hook runs `pnpm check` (Husky + lint-staged)
+- Pre-commit hook runs `pnpm check` (Husky)
 - Build output: `dist/`
-- Dev env file: `.env.development` (gitignored; use `.env.development.example` as template)
-- Prod env file: `.env.production` (gitignored; use `.env.production.example` as template)
+- Single `.env` file at project root (gitignored; use `.env.example` as template)
 - Mock Ollama API available at `/api/v1/mock/*` for offline development
 - Daily messages sent at 6 AM IST (cron `0 6 * * *`, timezone `Asia/Kolkata`)
 - Admin bot runs on same process as user bot, guarded by auth middleware
@@ -202,4 +127,6 @@ Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_T
 - NEVER make git commits, git pushes, or GitHub PR changes without explicit user permission
 - Always ask before committing, pushing, or creating/modifying pull requests
 - NEVER use `any` type
+- STRICTLY use `pnpm format` to auto-format code; do not manually format
+- STRICTLY use `pnpm lint` to auto-fix lint issues; do not manually fix lint
 - Run `pnpm check` before considering work complete
