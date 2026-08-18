@@ -20,7 +20,7 @@ export const dailyMsgCreator = async (_job: Job<DailyMsgCreatorJobData>): Promis
                 },
                 {
                     role: "user",
-                    content: "Generate today's daily engagement message.",
+                    content: "Generate today's warm engagement message.",
                 },
             ],
         });

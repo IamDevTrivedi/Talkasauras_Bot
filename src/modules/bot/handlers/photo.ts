@@ -36,7 +36,8 @@ const registerPhoto = () => {
 
             const preMsgsDecrypted = await getHistory(telegramIdHash, isActualTemporary);
 
-            const promptContent = caption || "Describe this image";
+            const promptContent =
+                caption || "Analyze and describe the contents of this image clearly and concisely.";
 
             const customInstructions = decryptCustomInstructions(user.customInstructions);
 
