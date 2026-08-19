@@ -8,7 +8,7 @@ A Telegram chatbot powered by Ollama LLM with real-time AI conversations, schedu
 
 | Layer             | Technology                                                                                   |
 | ----------------- | -------------------------------------------------------------------------------------------- |
-| **Runtime**       | Bun 1.3+, TypeScript 5.9, ESM (`"type": "module"`)                                           |
+| **Runtime**       | Bun 1.3+, TypeScript 7.0 (native Go port), ESM (`"type": "module"`)                          |
 | **Framework**     | Express 5 (API), Telegraf 4 (Telegram bot client)                                            |
 | **LLM**           | Ollama (via `ollama` npm SDK), mock endpoint for offline dev                                 |
 | **Database**      | PostgreSQL 18 + Prisma ORM 7 (`@prisma/adapter-pg`)                                          |
@@ -116,6 +116,7 @@ Messages with `isTemporary = true` auto-delete after 5 minutes (`TEMPORARY_MSG_T
 ## Important Notes
 
 - Pre-commit hook runs `bun check` (Husky)
+- TypeScript is dual-track: `tsc` runs the TypeScript 7 native compiler (`@typescript/native` alias), while the `typescript` package is aliased to `@typescript/typescript6` (TS 6.0 API) solely because typescript-eslint requires the programmatic compiler API that TS 7.0 does not ship. Remove both aliases once typescript-eslint supports TS 7.1's stable API.
 - Build output: `dist/`
 - Single `.env` file at project root (gitignored; use `.env.example` as template)
 - Mock Ollama API available at `/api/v1/mock/*` for offline development

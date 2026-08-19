@@ -47,7 +47,7 @@ On every push to main, GitHub Actions runs lint, format, and type checks, builds
 
 ## Tech Stack
 
-- **Runtime:** Bun 1.3+, TypeScript 5.9
+- **Runtime:** Bun 1.3+, TypeScript 7.0 (native Go compiler; `typescript` alias pins TS 6.0 for typescript-eslint)
 - **Package Manager:** Bun
 - **Infrastructure:** Docker Compose (Redis, PostgreSQL, Ollama)
 
