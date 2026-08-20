@@ -1,41 +1,18 @@
-# ─────────────────────────────────────────────
-# Stage 1: Builder
-# ─────────────────────────────────────────────
-FROM oven/bun:1-alpine AS builder
+FROM oven/bun:1.3.14-alpine AS production
 WORKDIR /app
 
-# Install all dependencies (frozen lockfile for reproducibility)
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --ignore-scripts
+RUN bun install --production --ignore-scripts
 
-# Copy only what the build needs
 COPY tsconfig.json ./
 COPY prisma/ ./prisma
 COPY prisma.config.ts ./
 COPY src/ ./src
 
-# Generate Prisma client and build
-RUN bun run db:generate
-RUN bun run build
+RUN chown -R bun:bun /app
 
-# ─────────────────────────────────────────────
-# Stage 2: Production
-# ─────────────────────────────────────────────
-FROM oven/bun:1-alpine AS production
-WORKDIR /app
+USER bun
 
-# Install only production dependencies
-COPY package.json bun.lock ./
-RUN bun install --production --ignore-scripts
-
-# Copy build output from builder
-COPY --from=builder /app/dist ./dist
-
-# Copy Prisma schema and config for migrate:deploy + generate
-COPY prisma/ ./prisma
-COPY prisma.config.ts ./
-
-# Regenerate Prisma client in the production image
 RUN bun run db:generate
 
 EXPOSE 5000
